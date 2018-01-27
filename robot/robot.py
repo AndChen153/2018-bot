@@ -24,14 +24,14 @@ class SpartaBot(magicbot.MagicRobot):
         '''Create motors and stuff here'''
 
         # Drivetrain
-        self.drivetrain_left_motor_master = ctre.WPI_TalonSRX(5)
-        self.drivetrain_left_motor_slave = ctre.WPI_TalonSRX(10)
-        self.drivetrain_right_motor_master = ctre.WPI_TalonSRX(15)
-        self.drivetrain_right_motor_slave = ctre.WPI_TalonSRX(20)
+        self.drivetrain_left_motor_master = ctre.WPI_TalonSRX(3)
+        self.drivetrain_left_motor_slave = ctre.WPI_TalonSRX(4)
+        self.drivetrain_right_motor_master = ctre.WPI_TalonSRX(5)
+        self.drivetrain_right_motor_slave = ctre.WPI_TalonSRX(6)
         self.drivetrain_shifter_solenoid = wpilib.Solenoid(1)
 
         # Elevator
-        self.elevator_motor = ctre.WPI_TalonSRX(25)
+        self.elevator_motor = ctre.WPI_TalonSRX(8)
         self.elevator_solenoid = wpilib.DoubleSolenoid(2, 3)
 
         # Grabber
