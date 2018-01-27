@@ -1,5 +1,5 @@
 from magicbot import tunable
-from ctre import CANTalon
+from ctre import WPI_TalonSRX
 from enum import IntEnum
 from wpilib import DoubleSolenoid
 
@@ -16,7 +16,7 @@ class ElevatorPosition(IntEnum):
 
 class Elevator:
 
-    motor = CANTalon
+    motor = WPI_TalonSRX
     solenoid = DoubleSolenoid
 
     speed = tunable(1)
@@ -25,7 +25,6 @@ class Elevator:
         self.pending_state = None
         self.pending_position = None
         self.pending_drive = None
-        # self.motor.enableLimitSwitch(True, True)  # Top/bottom
 
     def deploy(self):
         self.pending_state = ElevatorState.DEPLOYED
@@ -48,12 +47,13 @@ class Elevator:
     def execute(self):
         # Elevator motor
         if self.pending_drive:
-            self.motor.changeControlMode(CANTalon.ControlMode.PercentVbus)
-            self.motor.set(self.pending_drive)
+            self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput,
+                           self.pending_drive)
             self.pending_drive = None
+
         elif self.pending_position:
-            self.motor.changeControlMode(CANTalon.ControlMode.Position)
-            self.motor.set(self.pending_position)
+            self.motor.set(WPI_TalonSRX.ControlMode.Position,
+                           self.pending_position)
             self.pending_position = None
 
         # Elevator deployment/retraction

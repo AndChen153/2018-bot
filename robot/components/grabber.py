@@ -1,5 +1,5 @@
 from magicbot import tunable
-from ctre import CANTalon
+from ctre import WPI_TalonSRX
 from enum import IntEnum
 
 
@@ -14,14 +14,14 @@ class Grabber:
     intake_speed = tunable(1)
     deposit_speed = tunable(1)
 
-    left_motor = CANTalon
-    right_motor = CANTalon
+    left_motor = WPI_TalonSRX
+    right_motor = WPI_TalonSRX
 
     def setup(self):
         self.pending_state = GrabberState.DISABLED
         self.right_motor.setInverted(True)
-        self.right_motor.changeControlMode(CANTalon.ControlMode.Follower)
-        self.right_motor.set(self.left_motor.getDeviceID())
+        self.right_motor.set(WPI_TalonSRX.ControlMode.Follower,
+                             self.left_motor.getDeviceID())
 
     def intake(self):
         self.pending_state = GrabberState.INTAKING
