@@ -41,7 +41,7 @@ class PositionController(BasePIDComponent):
         # heading while the encoders track distance traveled.
         self.angle_pid_controller = PIDController(
             Kp=self.kAngleP, Ki=self.kAngleI, Kd=self.kAngleD, Kf=self.kAngleF,
-            source=self.angle_controller.get_angle,
+            source=self.get_angle,
             output=self.pidWriteAngle)
         self.angle_pid_controller.setInputRange(-180, 180)
         self.angle_pid_controller.setContinuous(True)
@@ -50,6 +50,9 @@ class PositionController(BasePIDComponent):
 
     def get_position(self):
         return self.drivetrain.get_position()
+
+    def get_angle(self):
+        return self.angle_controller.get_angle()
 
     def reset_position_and_heading(self):
         self.drivetrain.reset_position()

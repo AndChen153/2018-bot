@@ -69,8 +69,8 @@ class Drivetrain:
     def execute(self):
         # Reset position
         if self.pending_reset:
-            self.left_motor_master.setQuadraturePosition(0)
-            self.right_motor_master.setQuadraturePosition(0)
+            self.left_motor_master.setQuadraturePosition(0, 0)
+            self.right_motor_master.setQuadraturePosition(0, 0)
             self.pending_reset = False
 
         # Drive
