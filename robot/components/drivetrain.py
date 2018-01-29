@@ -6,8 +6,8 @@ from wpilib import RobotDrive, Solenoid
 DifferentialDriveConfig = namedtuple('DifferentialDriveConfig',
                                      ['y', 'rotation'])
 
-HIGH_GEAR = True
-LOW_GEAR = False
+HIGH_GEAR = False
+LOW_GEAR = True
 
 UNITS_PER_REV = 4096
 DISTANCE_PER_REV = 2 * math.pi * 6

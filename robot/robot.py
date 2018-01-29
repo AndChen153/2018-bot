@@ -28,15 +28,15 @@ class SpartaBot(magicbot.MagicRobot):
         self.drivetrain_left_motor_slave = ctre.WPI_TalonSRX(4)
         self.drivetrain_right_motor_master = ctre.WPI_TalonSRX(5)
         self.drivetrain_right_motor_slave = ctre.WPI_TalonSRX(6)
-        self.drivetrain_shifter_solenoid = wpilib.Solenoid(1)
+        self.drivetrain_shifter_solenoid = wpilib.Solenoid(0)
 
         # Elevator
         self.elevator_motor = ctre.WPI_TalonSRX(8)
-        self.elevator_solenoid = wpilib.DoubleSolenoid(2, 3)
+        self.elevator_solenoid = wpilib.DoubleSolenoid(1, 2)
 
         # Grabber
-        self.grabber_left_motor = ctre.WPI_TalonSRX(1)
-        self.grabber_right_motor = ctre.WPI_TalonSRX(2)
+        self.grabber_left_motor = ctre.WPI_TalonSRX(2)
+        self.grabber_right_motor = ctre.WPI_TalonSRX(1)
 
         # Controller
         self.drive_controller = wpilib.XboxController(0)
@@ -68,7 +68,7 @@ class SpartaBot(magicbot.MagicRobot):
 
         # Elevator free control
         controller_pov = self.drive_controller.getPOV(pov=0)
-        if controller_pov == 90:
+        if controller_pov == 0:
             self.elevator.raise_freely()
         elif controller_pov == 180:
             self.elevator.lower_freely()

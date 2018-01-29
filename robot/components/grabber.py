@@ -35,7 +35,7 @@ class Grabber:
         elif self.pending_state == GrabberState.INTAKING:
             self.left_motor.set(self.intake_speed)
         elif self.pending_state == GrabberState.DEPOSITING:
-            self.left_motor.set(self.deposit_speed)
+            self.left_motor.set(-self.deposit_speed)
 
         self.pending_state = GrabberState.DISABLED
 

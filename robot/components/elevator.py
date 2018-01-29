@@ -22,6 +22,7 @@ class Elevator:
     speed = tunable(1)
 
     def setup(self):
+        self.motor.setInverted(True)
         self.pending_state = None
         self.pending_position = None
         self.pending_drive = None
@@ -55,6 +56,9 @@ class Elevator:
             self.motor.set(WPI_TalonSRX.ControlMode.Position,
                            self.pending_position)
             self.pending_position = None
+
+        else:
+            self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput, 0)
 
         # Elevator deployment/retraction
         if self.pending_state:
