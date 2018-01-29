@@ -11,7 +11,7 @@ class SwitchState(IntEnum):
 
 class Field:
 
-    def get_switch_side():
+    def get_switch_side(self):
         message = DriverStation.getInstance().getGameSpecificMessage().lower()
         if message:
             if message[0] == 'l':

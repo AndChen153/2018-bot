@@ -66,6 +66,12 @@ class Drivetrain:
     def shift_high_gear(self):
         self.pending_gear = HIGH_GEAR
 
+    def shift_toggle(self):
+        if self.pending_gear == HIGH_GEAR:
+            self.pending_gear = LOW_GEAR
+        else:
+            self.pending_gear = HIGH_GEAR
+
     def execute(self):
         # Reset position
         if self.pending_reset:

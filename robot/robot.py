@@ -4,7 +4,8 @@ import ctre
 from robotpy_ext.common_drivers import navx
 
 from components import drivetrain, elevator, grabber, field
-from controllers import position_controller, angle_controller
+from controllers import position_controller, angle_controller, \
+    trajectory_controller
 
 CONTROLLER_LEFT = wpilib.XboxController.Hand.kLeft
 CONTROLLER_RIGHT = wpilib.XboxController.Hand.kRight
@@ -19,6 +20,7 @@ class SpartaBot(magicbot.MagicRobot):
 
     position_controller = position_controller.PositionController
     angle_controller = angle_controller.AngleController
+    trajectory_controller = trajectory_controller.TrajectoryController
 
     def createObjects(self):
         # Drivetrain
