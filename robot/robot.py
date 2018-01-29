@@ -21,8 +21,6 @@ class SpartaBot(magicbot.MagicRobot):
     angle_controller = angle_controller.AngleController
 
     def createObjects(self):
-        '''Create motors and stuff here'''
-
         # Drivetrain
         self.drivetrain_left_motor_master = ctre.WPI_TalonSRX(3)
         self.drivetrain_left_motor_slave = ctre.WPI_TalonSRX(4)
@@ -38,8 +36,9 @@ class SpartaBot(magicbot.MagicRobot):
         self.grabber_left_motor = ctre.WPI_TalonSRX(2)
         self.grabber_right_motor = ctre.WPI_TalonSRX(1)
 
-        # Controller
+        # Controllers
         self.drive_controller = wpilib.XboxController(0)
+        self.operator_controller = wpilib.XboxController(1)
 
         # Navx
         self.navx = navx.AHRS.create_spi()
@@ -53,31 +52,33 @@ class SpartaBot(magicbot.MagicRobot):
             self.drive_controller.getY(CONTROLLER_LEFT),
             self.drive_controller.getX(CONTROLLER_RIGHT))
 
-        # Shifter - switch into low gear when A button is held
-        # for precise targeting. Otherwise stay high and zippy.
-        if self.drive_controller.getAButton():
-            self.drivetrain.shift_low_gear()
-        else:
-            self.drivetrain.shift_high_gear()
+        # Shifter - toggle into low gear when A button is pressed
+        # for precise alignment. Otherwise stay high and zippy.
+        if self.drive_controller.getAButtonReleased():
+            self.drivetrain.shift_toggle()
 
-        # Elevator position control
-        if self.drive_controller.getBumper(CONTROLLER_RIGHT):
-            self.elevator.raise_to_switch()
-        elif self.drive_controller.getBumper(CONTROLLER_LEFT):
-            self.elevator.lower_to_ground()
+        # Mirror elevator control & grabber control to both drive and
+        # operator controllers to allow for driveteam flexibility.
+        for controller in [self.drive_controller, self.operator_controller]:
 
-        # Elevator free control
-        controller_pov = self.drive_controller.getPOV(pov=0)
-        if controller_pov == 0:
-            self.elevator.raise_freely()
-        elif controller_pov == 180:
-            self.elevator.lower_freely()
+            # Elevator position control
+            if controller.getBumper(CONTROLLER_RIGHT):
+                self.elevator.raise_to_switch()
+            elif controller.getBumper(CONTROLLER_LEFT):
+                self.elevator.lower_to_ground()
 
-        # Grabber
-        if self.drive_controller.getTriggerAxis(CONTROLLER_RIGHT):
-            self.grabber.intake()
-        elif self.drive_controller.getTriggerAxis(CONTROLLER_LEFT):
-            self.grabber.deposit()
+            # Elevator free control
+            controller_pov = controller.getPOV(pov=0)
+            if controller_pov == 0:
+                self.elevator.raise_freely()
+            elif controller_pov == 180:
+                self.elevator.lower_freely()
+
+            # Grabber
+            if controller.getTriggerAxis(CONTROLLER_RIGHT):
+                self.grabber.intake()
+            elif controller.getTriggerAxis(CONTROLLER_LEFT):
+                self.grabber.deposit()
 
 
 if __name__ == '__main__':
