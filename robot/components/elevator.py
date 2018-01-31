@@ -1,7 +1,14 @@
+import math
 from magicbot import tunable
 from ctre import WPI_TalonSRX
 from enum import IntEnum
 from wpilib import DoubleSolenoid
+
+from constants import TALON_TIMEOUT
+
+# 12T #35 sprocket diameter: https://www.vexrobotics.com/35-sprockets.html
+UNITS_PER_REV = 4096
+DISTANCE_PER_REV = math.pi * 1.786  # pi * sprocket diameter
 
 
 class ElevatorState(IntEnum):
@@ -11,7 +18,7 @@ class ElevatorState(IntEnum):
 
 class ElevatorPosition(IntEnum):
     GROUND = 0
-    SWITCH = 10
+    SWITCH = 36 / DISTANCE_PER_REV * UNITS_PER_REV  # 36 inches
 
 
 class Elevator:
@@ -19,13 +26,29 @@ class Elevator:
     motor = WPI_TalonSRX
     solenoid = DoubleSolenoid
 
-    speed = tunable(1)
+    kFreeSpeed = tunable(1)
+    kZeroingSpeed = tunable(0.6)
+    kP = tunable(0.0)
+    kI = tunable(0.0)
+    kD = tunable(0.0)
+    kF = tunable(0.0)
 
     def setup(self):
-        self.motor.setInverted(True)
         self.pending_state = None
         self.pending_position = None
         self.pending_drive = None
+
+        self.has_zeroed = False
+
+        self.motor.setInverted(True)
+        self.motor.configSelectedFeedbackSensor(
+            WPI_TalonSRX.FeedbackDevice.CTRE_MagEncoder_Relative, 0,
+            TALON_TIMEOUT)
+        self.motor.selectProfileSlot(0, 0)
+        self.motor.config_kP(0, self.kP, TALON_TIMEOUT)
+        self.motor.config_kI(0, self.kI, TALON_TIMEOUT)
+        self.motor.config_kD(0, self.kD, TALON_TIMEOUT)
+        self.motor.config_kF(0, self.kF, TALON_TIMEOUT)
 
     def deploy(self):
         self.pending_state = ElevatorState.DEPLOYED
@@ -40,10 +63,10 @@ class Elevator:
         self.pending_position = ElevatorPosition.GROUND
 
     def raise_freely(self):
-        self.pending_drive = self.speed
+        self.pending_drive = self.kFreeSpeed
 
     def lower_freely(self):
-        self.pending_drive = -self.speed
+        self.pending_drive = -self.kFreeSpeed
 
     def execute(self):
         # Elevator motor
@@ -54,8 +77,15 @@ class Elevator:
             self.pending_position = None  # Clear old pending position
 
         elif self.pending_position:
-            self.motor.set(WPI_TalonSRX.ControlMode.Position,
-                           self.pending_position)
+            # Note: we don't clear the pending position so that we keep
+            # on driving to the position in subsequent execute() cycles.
+            if self.has_zeroed:
+                self.motor.set(WPI_TalonSRX.ControlMode.Position,
+                               self.pending_position)
+            elif self.pending_position == ElevatorPosition.GROUND:
+                # Drive downwards until we zero it... and cross our fingers...
+                self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput,
+                               -self.kZeroingSpeed)
 
         else:
             self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput, 0)
@@ -67,3 +97,8 @@ class Elevator:
             elif self.pending_state == ElevatorState.DEPLOYED:
                 self.solenoid.set(DoubleSolenoid.kReverse)
             self.pending_state = None
+
+        # Zero the encoder when hits bottom of elevator
+        if self.motor.isRevLimitSwitchClosed():
+            self.motor.setQuadraturePosition(0, TALON_TIMEOUT)
+            self.has_zeroed = True

@@ -3,6 +3,8 @@ from collections import namedtuple
 from ctre import WPI_TalonSRX
 from wpilib import RobotDrive, Solenoid
 
+from constants import TALON_TIMEOUT
+
 DifferentialDriveConfig = namedtuple('DifferentialDriveConfig',
                                      ['y', 'rotation'])
 
@@ -75,8 +77,8 @@ class Drivetrain:
     def execute(self):
         # Reset position
         if self.pending_reset:
-            self.left_motor_master.setQuadraturePosition(0, 0)
-            self.right_motor_master.setQuadraturePosition(0, 0)
+            self.left_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)
+            self.right_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)
             self.pending_reset = False
 
         # Drive
