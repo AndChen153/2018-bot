@@ -36,7 +36,7 @@ class Elevator:
     def raise_to_switch(self):
         self.pending_position = ElevatorPosition.SWITCH
 
-    def lower_to_ground(self, position):
+    def lower_to_ground(self):
         self.pending_position = ElevatorPosition.GROUND
 
     def raise_freely(self):
@@ -51,11 +51,11 @@ class Elevator:
             self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput,
                            self.pending_drive)
             self.pending_drive = None
+            self.pending_position = None  # Clear old pending position
 
         elif self.pending_position:
             self.motor.set(WPI_TalonSRX.ControlMode.Position,
                            self.pending_position)
-            self.pending_position = None
 
         else:
             self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput, 0)
