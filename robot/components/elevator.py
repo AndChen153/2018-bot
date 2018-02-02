@@ -79,16 +79,19 @@ class Elevator:
         elif self.pending_position:
             # Note: we don't clear the pending position so that we keep
             # on driving to the position in subsequent execute() cycles.
-            if self.has_zeroed:
-                self.motor.set(WPI_TalonSRX.ControlMode.Position,
-                               self.pending_position)
-            elif self.pending_position == ElevatorPosition.GROUND:
+            if not self.has_zeroed and \
+                    self.pending_position == ElevatorPosition.GROUND:
                 # Drive downwards until we zero it... and cross our fingers...
                 self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput,
                                -self.kZeroingSpeed)
+            else:
+                self.motor.set(WPI_TalonSRX.ControlMode.Position,
+                               self.pending_position)
 
         else:
-            self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput, 0)
+            # If no command, hold position in place (basically, a more
+            # "aggressive" brake mode to prevent any slippage).
+            self.pending_position = self.motor.getQuadraturePosition()
 
         # Elevator deployment/retraction
         if self.pending_state:
