@@ -2,8 +2,8 @@ import magicbot
 import wpilib
 import ctre
 from robotpy_ext.common_drivers import navx
-
 from components import drivetrain, elevator, grabber, field
+from common import xbox_updater
 from controllers import position_controller, angle_controller, \
     trajectory_controller
 
@@ -53,7 +53,7 @@ class SpartaBot(magicbot.MagicRobot):
         self.drivetrain.differential_drive(
             self.drive_controller.getY(CONTROLLER_LEFT),
             self.drive_controller.getX(CONTROLLER_RIGHT))
-
+        
         # Shifter - toggle into low gear when A button is pressed
         # for precise alignment. Otherwise stay high and zippy.
         if self.drive_controller.getAButtonReleased():
@@ -82,6 +82,9 @@ class SpartaBot(magicbot.MagicRobot):
             elif controller.getTriggerAxis(CONTROLLER_LEFT):
                 self.grabber.deposit()
 
+        #Pass inputs to dashboard    
+        xbox_updater.push(self.drive_controller, 'driver')
+        xbox_updater.push(self.operator_controller, 'operator')
 
 if __name__ == '__main__':
     wpilib.run(SpartaBot)
