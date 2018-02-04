@@ -5,7 +5,7 @@ from robotpy_ext.common_drivers import navx
 from components import drivetrain, elevator, grabber, field
 from common import xbox_updater
 from controllers import position_controller, angle_controller, \
-    trajectory_controller
+    trajectory_controller, grabber_orienter_controller
 
 CONTROLLER_LEFT = wpilib.XboxController.Hand.kLeft
 CONTROLLER_RIGHT = wpilib.XboxController.Hand.kRight
@@ -21,6 +21,8 @@ class SpartaBot(magicbot.MagicRobot):
     position_controller = position_controller.PositionController
     angle_controller = angle_controller.AngleController
     trajectory_controller = trajectory_controller.TrajectoryController
+    grabber_orienter_controller = grabber_orienter_controller. \
+        GrabberOrienterController
 
     def createObjects(self):
         # Drivetrain
@@ -56,7 +58,9 @@ class SpartaBot(magicbot.MagicRobot):
 
         # Shifter - toggle into low gear when A button is pressed
         # for precise alignment. Otherwise stay high and zippy.
-        if self.drive_controller.getAButtonReleased():
+        # if self.drive_controller.getAButtonReleased():
+        #     self.drivetrain.shift_toggle()
+        if self.drive_controller.getBumper(CONTROLLER_LEFT):
             self.drivetrain.shift_toggle()
 
         # Mirror elevator control & grabber control to both drive and
@@ -64,10 +68,10 @@ class SpartaBot(magicbot.MagicRobot):
         for controller in [self.drive_controller, self.operator_controller]:
 
             # Elevator position control
-            if controller.getBumper(CONTROLLER_RIGHT):
-                self.elevator.raise_to_switch()
-            elif controller.getBumper(CONTROLLER_LEFT):
-                self.elevator.lower_to_ground()
+            # if controller.getBumper(CONTROLLER_RIGHT):
+            #     self.elevator.raise_to_switch()
+            # elif controller.getBumper(CONTROLLER_LEFT):
+            #     self.elevator.lower_to_ground()
 
             # Elevator free control
             controller_pov = controller.getPOV(pov=0)
@@ -81,6 +85,19 @@ class SpartaBot(magicbot.MagicRobot):
                 self.grabber.intake()
             elif controller.getTriggerAxis(CONTROLLER_LEFT):
                 self.grabber.deposit()
+
+            # Grabber orienter - for rotating cube into place
+            # if controller.getBButton():
+            #     self.grabber_orienter_controller.orient(
+            #         grabber_orienter_controller.GrabberOrienterSide.LEFT)
+            # elif controller.getXButton():
+            #     self.grabber_orienter_controller.orient(
+            #         grabber_orienter_controller.GrabberOrienterSide.RIGHT)
+            # elif controller.getYButton():
+
+            if controller.getBumper(CONTROLLER_RIGHT):
+                self.grabber_orienter_controller.orient(
+                    grabber_orienter_controller.GrabberOrienterSide.FLIPPY)
 
         # Pass inputs to dashboard
         xbox_updater.push(self.drive_controller, 'driver')

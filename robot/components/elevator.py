@@ -26,8 +26,8 @@ class Elevator:
     motor = WPI_TalonSRX
     solenoid = DoubleSolenoid
 
-    kFreeSpeed = tunable(1)
-    kZeroingSpeed = tunable(0.6)
+    kFreeSpeed = tunable(0.6)
+    kZeroingSpeed = tunable(0.2)
     kP = tunable(0.0)
     kI = tunable(0.0)
     kD = tunable(0.0)
@@ -42,13 +42,17 @@ class Elevator:
 
         self.motor.setInverted(True)
         self.motor.configSelectedFeedbackSensor(
-            WPI_TalonSRX.FeedbackDevice.CTRE_MagEncoder_Relative, 0,
-            TALON_TIMEOUT)
+            WPI_TalonSRX.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0)
         self.motor.selectProfileSlot(0, 0)
-        self.motor.config_kP(0, self.kP, TALON_TIMEOUT)
-        self.motor.config_kI(0, self.kI, TALON_TIMEOUT)
-        self.motor.config_kD(0, self.kD, TALON_TIMEOUT)
-        self.motor.config_kF(0, self.kF, TALON_TIMEOUT)
+        self.motor.setSensorPhase(True)
+        self.motor.configReverseLimitSwitchSource(0, True, 0)
+        self.motor.config_kP(0, self.kP, 0)
+        self.motor.config_kI(0, self.kI, 0)
+        self.motor.config_kD(0, self.kD, 0)
+        self.motor.config_kF(0, self.kF, 0)
+
+    def is_encoder_connected(self):
+        return self.motor.getPulseWidthRiseToRiseUs() != 0
 
     def deploy(self):
         self.pending_state = ElevatorState.DEPLOYED
@@ -76,7 +80,7 @@ class Elevator:
             self.pending_drive = None
             self.pending_position = None  # Clear old pending position
 
-        elif self.pending_position:
+        elif self.pending_position and self.is_encoder_connected():
             # Note: we don't clear the pending position so that we keep
             # on driving to the position in subsequent execute() cycles.
             if not self.has_zeroed and \
@@ -89,9 +93,12 @@ class Elevator:
                                self.pending_position)
 
         else:
-            # If no command, hold position in place (basically, a more
-            # "aggressive" brake mode to prevent any slippage).
-            self.pending_position = self.motor.getQuadraturePosition()
+            if self.is_encoder_connected():
+                # If no command, hold position in place (basically, a more
+                # "aggressive" brake mode to prevent any slippage).
+                self.pending_position = self.motor.getQuadraturePosition()
+            else:
+                self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput, 0)
 
         # Elevator deployment/retraction
         if self.pending_state:
