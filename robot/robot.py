@@ -56,11 +56,9 @@ class SpartaBot(magicbot.MagicRobot):
             self.drive_controller.getY(CONTROLLER_LEFT),
             self.drive_controller.getX(CONTROLLER_RIGHT))
 
-        # Shifter - toggle into low gear when A button is pressed
+        # Shifter - toggle into low gear when bumper pressed
         # for precise alignment. Otherwise stay high and zippy.
-        # if self.drive_controller.getAButtonReleased():
-        #     self.drivetrain.shift_toggle()
-        if self.drive_controller.getBumper(CONTROLLER_LEFT):
+        if self.drive_controller.getBumperReleased(CONTROLLER_LEFT):
             self.drivetrain.shift_toggle()
 
         # Mirror elevator control & grabber control to both drive and
@@ -86,15 +84,7 @@ class SpartaBot(magicbot.MagicRobot):
             elif controller.getTriggerAxis(CONTROLLER_LEFT):
                 self.grabber.deposit()
 
-            # Grabber orienter - for rotating cube into place
-            # if controller.getBButton():
-            #     self.grabber_orienter_controller.orient(
-            #         grabber_orienter_controller.GrabberOrienterSide.LEFT)
-            # elif controller.getXButton():
-            #     self.grabber_orienter_controller.orient(
-            #         grabber_orienter_controller.GrabberOrienterSide.RIGHT)
-            # elif controller.getYButton():
-
+            # Flippy grabber
             if controller.getBumper(CONTROLLER_RIGHT):
                 self.grabber_orienter_controller.orient(
                     grabber_orienter_controller.GrabberOrienterSide.FLIPPY)
