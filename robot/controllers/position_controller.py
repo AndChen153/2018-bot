@@ -1,6 +1,5 @@
 from magicbot import tunable
 from wpilib import PIDController
-from robotpy_ext.common_drivers import navx
 
 from components.drivetrain import Drivetrain
 from .base_pid_controller import BasePIDComponent

@@ -3,7 +3,7 @@ import wpilib
 import ctre
 from robotpy_ext.common_drivers import navx
 from components import drivetrain, elevator, grabber, field
-from common import xbox_updater
+from common import xbox_updater, util
 from controllers import position_controller, angle_controller, \
     trajectory_controller, grabber_orienter_controller
 
@@ -48,13 +48,17 @@ class SpartaBot(magicbot.MagicRobot):
         self.navx = navx.AHRS.create_spi()
 
     def teleopInit(self):
-        pass
+        self.drivetrain.reset_angle_correction()
 
     def teleopPeriodic(self):
         # Drive with controller
+        angle = self.drive_controller.getX(CONTROLLER_RIGHT)
+        if not self.drive_controller.getStickButtonPressed(CONTROLLER_RIGHT):
+            # Unless the right stick is pressed down, scale down turning inputs
+            # to keep the robot from flying around the field / overshooting.
+            angle = util.scale(angle, -1, 1, -0.75, 0.75)
         self.drivetrain.differential_drive(
-            self.drive_controller.getY(CONTROLLER_LEFT),
-            self.drive_controller.getX(CONTROLLER_RIGHT))
+            self.drive_controller.getY(CONTROLLER_LEFT), angle)
 
         # Shifter - toggle into low gear when bumper pressed
         # for precise alignment. Otherwise stay high and zippy.
@@ -78,16 +82,16 @@ class SpartaBot(magicbot.MagicRobot):
             elif controller_pov == 180:
                 self.elevator.lower_freely()
 
-            # Grabber
-            if controller.getTriggerAxis(CONTROLLER_RIGHT):
+            # Grabber - right trigger for flippy & full intake,
+            # left trigger to deposit cube.
+            right_trigger = controller.getTriggerAxis(CONTROLLER_RIGHT)
+            if right_trigger > 0.75:
                 self.grabber.intake()
-            elif controller.getTriggerAxis(CONTROLLER_LEFT):
-                self.grabber.deposit()
-
-            # Flippy grabber
-            if controller.getBumper(CONTROLLER_RIGHT):
+            elif right_trigger > 0:
                 self.grabber_orienter_controller.orient(
                     grabber_orienter_controller.GrabberOrienterSide.FLIPPY)
+            elif controller.getTriggerAxis(CONTROLLER_LEFT):
+                self.grabber.deposit()
 
         # Pass inputs to dashboard
         xbox_updater.push(self.drive_controller, 'driver')

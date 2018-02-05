@@ -45,7 +45,13 @@ class Elevator:
             WPI_TalonSRX.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0)
         self.motor.selectProfileSlot(0, 0)
         self.motor.setSensorPhase(True)
-        self.motor.configReverseLimitSwitchSource(0, True, 0)
+
+        try:
+            self.motor.configReverseLimitSwitchSource(0, True, 0)
+        except NotImplementedError:
+            # RobotPy sim - does not support (yet)
+            pass
+
         self.motor.config_kP(0, self.kP, 0)
         self.motor.config_kI(0, self.kI, 0)
         self.motor.config_kD(0, self.kD, 0)

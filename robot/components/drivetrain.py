@@ -2,8 +2,11 @@ import math
 from collections import namedtuple
 from ctre import WPI_TalonSRX
 from wpilib import RobotDrive, Solenoid
+from magicbot import tunable
+from robotpy_ext.common_drivers import navx
 
 from constants import TALON_TIMEOUT
+from common import util
 
 DifferentialDriveConfig = namedtuple('DifferentialDriveConfig',
                                      ['y', 'rotation'])
@@ -17,12 +20,17 @@ DISTANCE_PER_REV = 2 * math.pi * 6
 
 class Drivetrain:
 
+    navx = navx.AHRS
+
     left_motor_master = WPI_TalonSRX
     left_motor_slave = WPI_TalonSRX
     right_motor_master = WPI_TalonSRX
     right_motor_slave = WPI_TalonSRX
 
     shifter_solenoid = Solenoid
+
+    angle_correction_factor = tunable(0.05)
+    angle_correction_max = tunable(0.1)
 
     def setup(self):
         self.pending_differential_drive = None
@@ -61,6 +69,18 @@ class Drivetrain:
     def differential_drive(self, y, rotation=0):
         self.pending_differential_drive = DifferentialDriveConfig(
             y=y, rotation=rotation)
+
+    def reset_angle_correction(self):
+        self.navx.reset()
+
+    def angle_corrected_differential_drive(self, y, rotation=0):
+        '''
+        Heading must be reset first. (drivetrain.reset_angle_correction())
+        '''
+        heading = self.navx.getYaw()
+        correction = util.abs_clamp(-self.angle_correction_factor * heading,
+                                    0, self.angle_correction_max)
+        self.differential_drive(y, rotation + correction)
 
     def shift_low_gear(self):
         self.pending_gear = LOW_GEAR

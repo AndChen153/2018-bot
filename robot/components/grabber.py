@@ -12,7 +12,7 @@ class GrabberState(IntEnum):
 class Grabber:
 
     intake_speed = tunable(0.8)
-    deposit_speed = tunable(0.7)
+    deposit_speed = tunable(0.5)
     current_limit = tunable(0.0)
 
     left_motor = WPI_TalonSRX
