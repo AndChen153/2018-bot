@@ -12,8 +12,8 @@ DISTANCE_PER_REV = math.pi * 1.786  # pi * sprocket diameter
 
 
 class ElevatorState(IntEnum):
-    RETRACTED = 0
-    DEPLOYED = 1
+    LOCKED = 0
+    RELEASED = 1
 
 
 class ElevatorPosition(IntEnum):
@@ -64,11 +64,11 @@ class Elevator:
     def is_encoder_connected(self):
         return self.motor.getPulseWidthRiseToRiseUs() != 0
 
-    def deploy(self):
-        self.pending_state = ElevatorState.DEPLOYED
+    def lock(self):
+        self.pending_state = ElevatorState.LOCKED
 
-    def retract(self):
-        self.pending_state = ElevatorState.RETRACTED
+    def release_lock(self):
+        self.pending_state = ElevatorState.RELEASED
 
     def raise_to_switch(self):
         self.pending_position = ElevatorPosition.SWITCH
@@ -111,9 +111,9 @@ class Elevator:
 
         # Elevator deployment/retraction
         if self.pending_state:
-            if self.pending_state == ElevatorState.RETRACTED:
+            if self.pending_state == ElevatorState.LOCKED:
                 self.solenoid.set(DoubleSolenoid.Value.kForward)
-            elif self.pending_state == ElevatorState.DEPLOYED:
+            elif self.pending_state == ElevatorState.RELEASED:
                 self.solenoid.set(DoubleSolenoid.kReverse)
             self.pending_state = None
 
