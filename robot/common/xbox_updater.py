@@ -9,7 +9,7 @@ def push(joystick, name):
         name + '/BackButton': joystick.getBackButton(),
         name + '/StartButton': joystick.getStartButton(),
         name + '/XButton': joystick.getXButton(),
-        name + '/BackButton': joystick.getYButton(),
+        name + '/YButton': joystick.getYButton(),
         name + '/LeftRumble': joystick.leftRumble,
         name + '/RightRumble': joystick.rightRumble,
         name + '/LeftX': joystick.getX(joystick.Hand.kLeft),
@@ -17,7 +17,9 @@ def push(joystick, name):
         name + '/RightX': joystick.getX(joystick.Hand.kRight),
         name + '/RightY': joystick.getY(joystick.Hand.kRight),
         name + '/LeftTrigger': joystick.getTriggerAxis(joystick.Hand.kLeft),
-        name + '/RightTrigger': joystick.getTriggerAxis(joystick.Hand.kRight)
+        name + '/RightTrigger': joystick.getTriggerAxis(joystick.Hand.kRight),
+        name + '/LeftBumper': joystick.getBumper(joystick.Hand.kLeft),
+        name + '/RightBumper': joystick.getBumper(joystick.Hand.kRight)
     }
 
     for i in output_dictionary.keys():

@@ -44,6 +44,10 @@ class SpartaBot(magicbot.MagicRobot):
         self.drive_controller = wpilib.XboxController(0)
         self.operator_controller = wpilib.XboxController(1)
 
+        # Initialize dashboard
+        xbox_updater.push(self.drive_controller, 'driver')
+        xbox_updater.push(self.operator_controller, 'operator')
+
         # Navx
         self.navx = navx.AHRS.create_spi()
 
@@ -96,7 +100,11 @@ class SpartaBot(magicbot.MagicRobot):
         # Pass inputs to dashboard
         xbox_updater.push(self.drive_controller, 'driver')
         xbox_updater.push(self.operator_controller, 'operator')
-
+        
+    def disabledPeriodic(self):
+        # Pass inputs to dashboard
+        xbox_updater.push(self.drive_controller, 'driver')
+        xbox_updater.push(self.operator_controller, 'operator')
 
 if __name__ == '__main__':
     wpilib.run(SpartaBot)
