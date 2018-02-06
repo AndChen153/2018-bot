@@ -1,5 +1,7 @@
 import math
 
+from networktables import NetworkTables
+
 
 class BasePIDComponent:
     """
@@ -34,6 +36,8 @@ class BasePIDComponent:
         self._abs_min = 0.0
         self._abs_max = 1.0
 
+        self.nt = NetworkTables.getTable('controllers/' + table_name)
+
     @property
     def setpoint(self):
         return self._setpoint
@@ -63,7 +67,8 @@ class BasePIDComponent:
                 self.err = 0
 
             # homemade PID
-            err = self.compute_error(self._setpoint, self._pid_input())
+            value = self._pid_input()
+            err = self.compute_error(self._setpoint, value)
             if abs(err) < self.kIzone:
                 self.err = 0
             else:
@@ -83,6 +88,10 @@ class BasePIDComponent:
             self._last_err = err
 
             self.pidWrite(output)
+
+            self.nt.putValue('setpoint', self.setpoint)
+            self.nt.putValue('value', value)
+            self.nt.putValue('error', err)
 
         else:
             if self.enabled:

@@ -33,6 +33,10 @@ class Elevator:
     kD = tunable(0.0)
     kF = tunable(0.0)
 
+    setpoint = tunable(0)
+    value = tunable(0)
+    error = tunable(0)
+
     def setup(self):
         self.pending_state = None
         self.pending_position = None
@@ -97,7 +101,6 @@ class Elevator:
             else:
                 self.motor.set(WPI_TalonSRX.ControlMode.Position,
                                self.pending_position)
-
         else:
             if self.is_encoder_connected():
                 # If no command, hold position in place (basically, a more
@@ -118,3 +121,12 @@ class Elevator:
         if self.motor.isRevLimitSwitchClosed():
             self.motor.setQuadraturePosition(0, TALON_TIMEOUT)
             self.has_zeroed = True
+
+        # Update dashboard PID values
+        try:
+            self.setpoint = self.motor.getClosedLoopTarget(0)
+            self.value = self.motor.getSelectedSensorPosition(0)
+            self.error = self.motor.getClosedLoopError(0)
+        except NotImplementedError:
+            # Simulator doesn't implement getError
+            pass
