@@ -26,9 +26,9 @@ class Elevator:
     motor = WPI_TalonSRX
     solenoid = DoubleSolenoid
 
-    kFreeSpeed = tunable(0.6)
+    kFreeSpeed = tunable(1)
     kZeroingSpeed = tunable(0.2)
-    kP = tunable(0.0)
+    kP = tunable(0.5)
     kI = tunable(0.0)
     kD = tunable(0.0)
     kF = tunable(0.0)
@@ -43,6 +43,8 @@ class Elevator:
         self.pending_drive = None
 
         self.has_zeroed = False
+        self.needs_brake = False
+        self.braking_direction = None
 
         self.motor.setInverted(True)
         self.motor.configSelectedFeedbackSensor(
@@ -50,11 +52,11 @@ class Elevator:
         self.motor.selectProfileSlot(0, 0)
         self.motor.setSensorPhase(True)
 
-        try:
-            self.motor.configReverseLimitSwitchSource(0, True, 0)
-        except NotImplementedError:
-            # RobotPy sim - does not support (yet)
-            pass
+        # try:
+        #     self.motor.configReverseLimitSwitchSource(0, True, 0)
+        # except NotImplementedError:
+        #     # RobotPy sim - does not support (yet)
+        #     pass
 
         self.motor.config_kP(0, self.kP, 0)
         self.motor.config_kI(0, self.kI, 0)
@@ -63,6 +65,9 @@ class Elevator:
 
     def is_encoder_connected(self):
         return self.motor.getPulseWidthRiseToRiseUs() != 0
+
+    def get_encoder_position(self):
+        return self.motor.getSelectedSensorPosition(0)
 
     def lock(self):
         self.pending_state = ElevatorState.LOCKED
@@ -90,6 +95,26 @@ class Elevator:
         self.pending_drive = -self.kFreeSpeed
 
     def execute(self):
+        # # For debugging
+        # print('elevator', 'drive', self.pending_drive,
+        #       'pos', self.pending_position,
+        #       'setpoint', self.setpoint,
+        #       'val', self.value,
+        #       'err', self.error)
+
+        # Brake - apply the brake either when we reach peak of movement
+        # (for upwards motion), and thus ds/dt = v = 0, or else immediately
+        # if we're traveling downwards (since no e.z. way to sense gravity vs
+        # intertial movement).
+        if self.needs_brake:
+            velocity = self.motor.getQuadratureVelocity()
+            if velocity == 0 or \
+                    self.braking_direction == -1 or \
+                    velocity / abs(velocity) != self.braking_direction:
+                self.pending_position = self.motor.getQuadraturePosition()
+                self.needs_brake = False
+                self.braking_direction = None
+
         # Elevator motor
         if self.pending_drive:
             self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput,
@@ -112,9 +137,10 @@ class Elevator:
             if self.is_encoder_connected():
                 # If no command, hold position in place (basically, a more
                 # "aggressive" brake mode to prevent any slippage).
-                self.pending_position = self.motor.getQuadraturePosition()
-            else:
-                self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput, 0)
+                self.needs_brake = True
+                velocity = self.motor.getQuadratureVelocity()
+                self.braking_direction = velocity / abs(velocity or 1)
+            self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput, 0)
 
         # Elevator deployment/retraction
         if self.pending_state:
@@ -130,10 +156,11 @@ class Elevator:
             self.has_zeroed = True
 
         # Update dashboard PID values
-        try:
-            self.setpoint = self.motor.getClosedLoopTarget(0)
-            self.value = self.motor.getSelectedSensorPosition(0)
-            self.error = self.motor.getClosedLoopError(0)
-        except NotImplementedError:
-            # Simulator doesn't implement getError
-            pass
+        if self.pending_position:
+            try:
+                self.setpoint = self.motor.getClosedLoopTarget(0)
+                self.value = self.motor.getSelectedSensorPosition(0)
+                self.error = self.motor.getClosedLoopError(0)
+            except NotImplementedError:
+                # Simulator doesn't implement getError
+                pass
