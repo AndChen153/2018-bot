@@ -36,7 +36,7 @@ class BasePIDComponent:
         self._abs_min = 0.0
         self._abs_max = 1.0
 
-        self.nt = NetworkTables.getTable('controllers/' + table_name)
+        self.nt = NetworkTables.getTable('components/' + table_name)
 
     @property
     def setpoint(self):
