@@ -33,12 +33,12 @@ class SingleCube(StatefulAutonomous):
     @state
     def execute_trajectory(self):
         if self.trajectory_controller.is_finished():
-            self.next_state('deploy')
+            self.next_state('deposit')
 
-    @timed_state(duration=3, next_state='deposit')
-    def deploy(self):
-        self.elevator.deploy()
-
-    @timed_state(duration=2)
+    @timed_state(duration=3, next_state='release_lock')
     def deposit(self):
         self.grabber.deposit()
+
+    @timed_state(duration=2)
+    def release_lock(self):
+        self.elevator.release_lock()
