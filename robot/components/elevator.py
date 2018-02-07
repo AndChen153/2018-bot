@@ -76,6 +76,13 @@ class Elevator:
     def lower_to_ground(self):
         self.pending_position = ElevatorPosition.GROUND
 
+    def move_incremental(self, amount):
+        '''
+        Move `amount` inches.
+        '''
+        self.pending_position = self.get_encoder_position() + \
+            amount / DISTANCE_PER_REV * UNITS_PER_REV
+
     def raise_freely(self):
         self.pending_drive = self.kFreeSpeed
 

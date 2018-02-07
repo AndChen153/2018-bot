@@ -86,6 +86,12 @@ class SpartaBot(magicbot.MagicRobot):
             elif controller_pov == 180:
                 self.elevator.lower_freely()
 
+            # Elevator incremental control
+            if controller_pov == 90:
+                self.elevator.move_incremental(1)
+            elif controller_pov == 270:
+                self.elevator.move_incremental(-1)
+
             # Grabber - right trigger for flippy & full intake,
             # left trigger to deposit cube.
             right_trigger = controller.getTriggerAxis(CONTROLLER_RIGHT)
