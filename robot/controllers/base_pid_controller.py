@@ -36,6 +36,7 @@ class BasePIDComponent:
         self._abs_min = 0.0
         self._abs_max = 1.0
 
+        self.table_name = table_name
         self.nt = NetworkTables.getTable('components/' + table_name)
 
     @property
@@ -89,6 +90,8 @@ class BasePIDComponent:
 
             self.pidWrite(output)
 
+            # print(self.table_name, 'setpoint', self.setpoint, 'value', value,
+            #       'error', err, 'output', output)
             self.nt.putValue('setpoint', self.setpoint)
             self.nt.putValue('value', value)
             self.nt.putValue('error', err)

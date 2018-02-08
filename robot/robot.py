@@ -26,8 +26,8 @@ class SpartaBot(magicbot.MagicRobot):
 
     def createObjects(self):
         # Drivetrain
-        self.drivetrain_left_motor_master = ctre.WPI_TalonSRX(3)
-        self.drivetrain_left_motor_slave = ctre.WPI_TalonSRX(4)
+        self.drivetrain_left_motor_master = ctre.WPI_TalonSRX(4)
+        self.drivetrain_left_motor_slave = ctre.WPI_TalonSRX(3)
         self.drivetrain_right_motor_master = ctre.WPI_TalonSRX(5)
         self.drivetrain_right_motor_slave = ctre.WPI_TalonSRX(6)
         self.drivetrain_shifter_solenoid = wpilib.Solenoid(0)
@@ -35,6 +35,7 @@ class SpartaBot(magicbot.MagicRobot):
         # Elevator
         self.elevator_motor = ctre.WPI_TalonSRX(8)
         self.elevator_solenoid = wpilib.DoubleSolenoid(1, 2)
+        self.elevator_reverse_limit = wpilib.DigitalInput(0)
 
         # Grabber
         self.grabber_left_motor = ctre.WPI_TalonSRX(2)
@@ -53,6 +54,7 @@ class SpartaBot(magicbot.MagicRobot):
 
     def teleopInit(self):
         self.drivetrain.reset_angle_correction()
+        self.position_controller.reset_position_and_heading()
 
     def teleopPeriodic(self):
         # Drive with controller
@@ -74,10 +76,10 @@ class SpartaBot(magicbot.MagicRobot):
         for controller in [self.drive_controller, self.operator_controller]:
 
             # Elevator position control
-            # if controller.getBumper(CONTROLLER_RIGHT):
-            #     self.elevator.raise_to_switch()
-            # elif controller.getBumper(CONTROLLER_LEFT):
-            #     self.elevator.lower_to_ground()
+            if controller.getYButton():
+                self.elevator.raise_to_switch()
+            elif controller.getAButton():
+                self.elevator.lower_to_ground()
 
             # Elevator free control
             controller_pov = controller.getPOV(pov=0)
@@ -94,23 +96,27 @@ class SpartaBot(magicbot.MagicRobot):
 
             # Grabber - right trigger for flippy & full intake,
             # left trigger to deposit cube.
-            right_trigger = controller.getTriggerAxis(CONTROLLER_RIGHT)
-            if right_trigger > 0.75:
+            if controller.getTriggerAxis(CONTROLLER_RIGHT):
                 self.grabber.intake()
-            elif right_trigger > 0:
+            elif controller.getTriggerAxis(CONTROLLER_LEFT):
                 self.grabber_orienter_controller.orient(
                     grabber_orienter_controller.GrabberOrienterSide.FLIPPY)
-            elif controller.getTriggerAxis(CONTROLLER_LEFT):
+            elif controller.getBumper(CONTROLLER_RIGHT):
                 self.grabber.deposit()
+
+            # Position testing
+            # if controller.getBButton():
+            #     self.position_controller.move_to(36)
 
         # Pass inputs to dashboard
         xbox_updater.push(self.drive_controller, 'driver')
         xbox_updater.push(self.operator_controller, 'operator')
-        
+
     def disabledPeriodic(self):
         # Pass inputs to dashboard
         xbox_updater.push(self.drive_controller, 'driver')
         xbox_updater.push(self.operator_controller, 'operator')
+
 
 if __name__ == '__main__':
     wpilib.run(SpartaBot)

@@ -100,7 +100,8 @@ class AngleController(BasePIDComponent):
             if self.is_aligned():
                 self.stop()
             else:
-                self.drivetrain.differential_drive(self.rate, rotation=1)
+                self.drivetrain.differential_drive(self.rate, rotation=1,
+                                                   force=True)
 
     def stop(self):
         self.drivetrain.differential_drive(0)

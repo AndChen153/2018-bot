@@ -10,11 +10,11 @@ class PositionController(BasePIDComponent):
 
     drivetrain = Drivetrain
 
-    kP = tunable(0.1)
+    kP = tunable(0.3)
     kI = tunable(0.0)
-    kD = tunable(0.0)
+    kD = tunable(0.5)
     kF = tunable(0.0)
-    kToleranceInches = tunable(2)
+    kToleranceInches = tunable(0.5)
     kIzone = tunable(0.25)
 
     angle_controller = AngleController
@@ -34,7 +34,7 @@ class PositionController(BasePIDComponent):
 
     def __init__(self):
         super().__init__(self.get_position, 'position_controller')
-        self.set_abs_output_range(0.16, 0.8)
+        self.set_abs_output_range(0.16, 0.9)
 
         # Angle correction PID controller - used to maintain a straight
         # heading while the encoders track distance traveled.
@@ -79,7 +79,8 @@ class PositionController(BasePIDComponent):
             if self.is_at_location():
                 self.stop()
             else:
-                self.drivetrain.differential_drive(self.rate, self.angle)
+                self.drivetrain.differential_drive(self.rate, self.angle,
+                                                   force=True)
 
     def stop(self):
         self.drivetrain.differential_drive(0)

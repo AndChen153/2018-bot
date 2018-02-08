@@ -2,7 +2,7 @@ import math
 from magicbot import tunable
 from ctre import WPI_TalonSRX
 from enum import IntEnum
-from wpilib import DoubleSolenoid
+from wpilib import DoubleSolenoid, DigitalInput
 
 from constants import TALON_TIMEOUT
 
@@ -18,16 +18,17 @@ class ElevatorState(IntEnum):
 
 class ElevatorPosition(IntEnum):
     GROUND = 0
-    SWITCH = 36 / DISTANCE_PER_REV * UNITS_PER_REV  # 36 inches
+    SWITCH = 23000
 
 
 class Elevator:
 
     motor = WPI_TalonSRX
     solenoid = DoubleSolenoid
+    reverse_limit = DigitalInput
 
-    kFreeSpeed = tunable(1)
-    kZeroingSpeed = tunable(0.2)
+    kFreeSpeed = tunable(0.7)
+    kZeroingSpeed = tunable(0.3)
     kP = tunable(0.5)
     kI = tunable(0.0)
     kD = tunable(0.0)
@@ -51,12 +52,6 @@ class Elevator:
             WPI_TalonSRX.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0)
         self.motor.selectProfileSlot(0, 0)
         self.motor.setSensorPhase(True)
-
-        # try:
-        #     self.motor.configReverseLimitSwitchSource(0, True, 0)
-        # except NotImplementedError:
-        #     # RobotPy sim - does not support (yet)
-        #     pass
 
         self.motor.config_kP(0, self.kP, 0)
         self.motor.config_kI(0, self.kI, 0)
@@ -95,8 +90,9 @@ class Elevator:
         self.pending_drive = -self.kFreeSpeed
 
     def execute(self):
-        # # For debugging
+        # For debugging
         # print('elevator', 'drive', self.pending_drive,
+        #       'lim', self.reverse_limit.get(),
         #       'pos', self.pending_position,
         #       'setpoint', self.setpoint,
         #       'val', self.value,
@@ -115,6 +111,14 @@ class Elevator:
                 self.needs_brake = False
                 self.braking_direction = None
 
+        # Zero the encoder when hits bottom of elevator - limit switch NC
+        # Also ensure we don't drive past the bottom limit.
+        if not self.reverse_limit.get():
+            self.motor.setQuadraturePosition(0, TALON_TIMEOUT)
+            self.has_zeroed = True
+            if self.pending_drive and self.pending_drive <= 0:
+                self.pending_drive = None
+
         # Elevator motor
         if self.pending_drive:
             self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput,
@@ -122,7 +126,7 @@ class Elevator:
             self.pending_drive = None
             self.pending_position = None  # Clear old pending position
 
-        elif self.pending_position and self.is_encoder_connected():
+        elif self.pending_position is not None and self.is_encoder_connected():
             # Note: we don't clear the pending position so that we keep
             # on driving to the position in subsequent execute() cycles.
             if not self.has_zeroed and \
@@ -149,11 +153,6 @@ class Elevator:
             elif self.pending_state == ElevatorState.RELEASED:
                 self.solenoid.set(DoubleSolenoid.kReverse)
             self.pending_state = None
-
-        # Zero the encoder when hits bottom of elevator
-        if self.motor.isRevLimitSwitchClosed():
-            self.motor.setQuadraturePosition(0, TALON_TIMEOUT)
-            self.has_zeroed = True
 
         # Update dashboard PID values
         if self.pending_position:

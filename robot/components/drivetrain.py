@@ -34,6 +34,7 @@ class Drivetrain:
 
     def setup(self):
         self.pending_differential_drive = None
+        self.force_differential_drive = False
         self.pending_gear = HIGH_GEAR
         self.pending_position = None
         self.pending_reset = False
@@ -66,9 +67,11 @@ class Drivetrain:
         return (((left_position + right_position) / 2) *
                 (1 / UNITS_PER_REV) * DISTANCE_PER_REV)
 
-    def differential_drive(self, y, rotation=0):
-        self.pending_differential_drive = DifferentialDriveConfig(
-            y=y, rotation=rotation)
+    def differential_drive(self, y, rotation=0, force=False):
+        if not self.force_differential_drive:
+            self.pending_differential_drive = DifferentialDriveConfig(
+                y=y, rotation=rotation)
+            self.force_differential_drive = force
 
     def reset_angle_correction(self):
         self.navx.reset()
@@ -107,6 +110,7 @@ class Drivetrain:
                 self.pending_differential_drive.y,
                 self.pending_differential_drive.rotation)
             self.pending_differential_drive = None
+            self.force_differential_drive = False
 
         # Shifter
         self.shifter_solenoid.set(self.pending_gear)
