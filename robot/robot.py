@@ -2,10 +2,11 @@ import magicbot
 import wpilib
 import ctre
 from robotpy_ext.common_drivers import navx
-from components import drivetrain, elevator, grabber, field
+from components import drivetrain, elevator, grabber, field, targeting
 from common import xbox_updater, util
 from controllers import position_controller, angle_controller, \
-    trajectory_controller, grabber_orienter_controller
+    trajectory_controller, grabber_orienter_controller, \
+    grabber_auto_controller, cube_hunter_controller
 
 CONTROLLER_LEFT = wpilib.XboxController.Hand.kLeft
 CONTROLLER_RIGHT = wpilib.XboxController.Hand.kRight
@@ -17,12 +18,16 @@ class SpartaBot(magicbot.MagicRobot):
     elevator = elevator.Elevator
     grabber = grabber.Grabber
     field = field.Field
+    targeting = targeting.Targeting
 
     position_controller = position_controller.PositionController
     angle_controller = angle_controller.AngleController
     trajectory_controller = trajectory_controller.TrajectoryController
     grabber_orienter_controller = grabber_orienter_controller. \
         GrabberOrienterController
+    grabber_auto_controller = grabber_auto_controller. \
+        GrabberAutoController
+    cube_hunter_controller = cube_hunter_controller.CubeHunterController
 
     def createObjects(self):
         # Drivetrain
@@ -99,14 +104,18 @@ class SpartaBot(magicbot.MagicRobot):
             if controller.getTriggerAxis(CONTROLLER_RIGHT):
                 self.grabber.intake()
             elif controller.getTriggerAxis(CONTROLLER_LEFT):
+                self.grabber.deposit()
+            elif controller.getBumper(CONTROLLER_RIGHT):
                 self.grabber_orienter_controller.orient(
                     grabber_orienter_controller.GrabberOrienterSide.FLIPPY)
-            elif controller.getBumper(CONTROLLER_RIGHT):
-                self.grabber.deposit()
 
             # Position testing
-            # if controller.getBButton():
-            #     self.position_controller.move_to(36)
+            if controller.getBButton():
+                self.position_controller.move_to(36)
+
+            # Seek testing
+            if controller.getXButton():
+                self.cube_hunter_controller.seek()
 
         # Pass inputs to dashboard
         xbox_updater.push(self.drive_controller, 'driver')

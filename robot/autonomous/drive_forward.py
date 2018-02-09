@@ -3,14 +3,14 @@ from robotpy_ext.autonomous import StatefulAutonomous, state, timed_state
 from controllers.position_controller import PositionController
 from components.drivetrain import Drivetrain
 
-WAIT_PERIOD = 5  # Seconds to wait before driving forward
+WAIT_PERIOD = 1  # Seconds to wait before driving forward
 DISTANCE = 36  # Inches to drive forward
 
 
 class DriveForward(StatefulAutonomous):
 
     MODE_NAME = 'Drive Forward'
-    DEFAULT = True
+    DEFAULT = False
 
     position_controller = PositionController
     drivetrain = Drivetrain

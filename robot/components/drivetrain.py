@@ -9,13 +9,13 @@ from constants import TALON_TIMEOUT
 from common import util
 
 DifferentialDriveConfig = namedtuple('DifferentialDriveConfig',
-                                     ['y', 'rotation'])
+                                     ['y', 'rotation', 'squared'])
 
 HIGH_GEAR = False
 LOW_GEAR = True
 
 UNITS_PER_REV = 4096
-DISTANCE_PER_REV = 2 * math.pi * 6
+DISTANCE_PER_REV = (2 * math.pi * 3) / (3 / 1) / (54 / 30)
 
 
 class Drivetrain:
@@ -44,6 +44,7 @@ class Drivetrain:
             WPI_TalonSRX.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0)
         self.right_motor_master.configSelectedFeedbackSensor(
             WPI_TalonSRX.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0)
+        self.left_motor_master.setSensorPhase(True)
 
         # Set slave motors
         self.left_motor_slave.set(WPI_TalonSRX.ControlMode.Follower,
@@ -62,16 +63,20 @@ class Drivetrain:
         '''
         Returns averaged quadrature position in inches.
         '''
-        left_position = self.left_motor_master.getQuadraturePosition()
+        left_position = -self.left_motor_master.getQuadraturePosition()
         right_position = self.right_motor_master.getQuadraturePosition()
+        print('drivetrain pos', 'left', left_position, 'right', right_position)
         return (((left_position + right_position) / 2) *
                 (1 / UNITS_PER_REV) * DISTANCE_PER_REV)
 
-    def differential_drive(self, y, rotation=0, force=False):
+    def differential_drive(self, y, rotation=0, squared=True, force=False):
         if not self.force_differential_drive:
             self.pending_differential_drive = DifferentialDriveConfig(
-                y=y, rotation=rotation)
+                y=y, rotation=rotation, squared=squared)
             self.force_differential_drive = force
+
+    def turn(self, rotation=0, force=False):
+        self.differential_drive(0, rotation, squared=False, force=force)
 
     def reset_angle_correction(self):
         self.navx.reset()
@@ -108,7 +113,8 @@ class Drivetrain:
         if self.pending_differential_drive:
             self.robot_drive.arcadeDrive(
                 self.pending_differential_drive.y,
-                self.pending_differential_drive.rotation)
+                self.pending_differential_drive.rotation,
+                squaredInputs=self.pending_differential_drive.squared)
             self.pending_differential_drive = None
             self.force_differential_drive = False
 
