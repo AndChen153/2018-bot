@@ -10,7 +10,7 @@ ANGLE = 90  # Degrees to turn in place
 class TurnInPlace(StatefulAutonomous):
 
     MODE_NAME = 'Turn In Place'
-    DEFAULT = True
+    DEFAULT = False
 
     angle_controller = AngleController
     drivetrain = Drivetrain

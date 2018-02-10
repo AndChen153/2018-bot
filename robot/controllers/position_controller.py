@@ -50,6 +50,7 @@ class PositionController(BasePIDComponent):
         return self.angle_controller.get_angle()
 
     def reset_position_and_heading(self):
+        self.drivetrain.shift_low_gear()
         self.drivetrain.reset_position()
         self.angle_controller.reset_angle()
         self.angle_pid_controller.setSetpoint(0)
@@ -81,3 +82,6 @@ class PositionController(BasePIDComponent):
     def stop(self):
         self.drivetrain.differential_drive(0)
         self.angle_pid_controller.disable()
+
+    def on_disable(self):
+        self.stop()

@@ -29,8 +29,8 @@ class GrabberOrienterController(StateMachine):
 
     @timed_state(duration=0.25, next_state='flippy_right')
     def flippy_left(self):
-        self.grabber.control_independently(0, 0.4, priority=-1)
+        self.grabber.control_independently(0, 0.3, priority=-1)
 
     @timed_state(duration=0.25, next_state='flippy_left')
     def flippy_right(self):
-        self.grabber.control_independently(0.4, 0, priority=-1)
+        self.grabber.control_independently(0.3, 0, priority=-1)

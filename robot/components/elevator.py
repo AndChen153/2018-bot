@@ -10,6 +10,8 @@ from constants import TALON_TIMEOUT
 UNITS_PER_REV = 4096
 DISTANCE_PER_REV = math.pi * 1.786  # pi * sprocket diameter
 
+GROUND_CUTOFF = 250
+
 
 class ElevatorState(IntEnum):
     LOCKED = 0
@@ -18,6 +20,7 @@ class ElevatorState(IntEnum):
 
 class ElevatorPosition(IntEnum):
     GROUND = 0
+    CARRYING = 2000
     SWITCH = 23000
 
 
@@ -64,6 +67,9 @@ class Elevator:
     def get_encoder_position(self):
         return self.motor.getSelectedSensorPosition(0)
 
+    def is_at_ground(self):
+        return self.get_encoder_position() <= GROUND_CUTOFF
+
     def lock(self):
         self.pending_state = ElevatorState.LOCKED
 
@@ -72,6 +78,9 @@ class Elevator:
 
     def raise_to_switch(self):
         self.pending_position = ElevatorPosition.SWITCH
+
+    def raise_to_carry(self):
+        self.pending_position = ElevatorPosition.CARRYING
 
     def lower_to_ground(self):
         self.pending_position = ElevatorPosition.GROUND
@@ -151,7 +160,7 @@ class Elevator:
             if self.pending_state == ElevatorState.LOCKED:
                 self.solenoid.set(DoubleSolenoid.Value.kForward)
             elif self.pending_state == ElevatorState.RELEASED:
-                self.solenoid.set(DoubleSolenoid.kReverse)
+                self.solenoid.set(DoubleSolenoid.Value.kReverse)
             self.pending_state = None
 
         # Update dashboard PID values

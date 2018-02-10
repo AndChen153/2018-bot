@@ -2,8 +2,8 @@ import magicbot
 import wpilib
 import ctre
 from robotpy_ext.common_drivers import navx
-from components import drivetrain, elevator, grabber, field, targeting
-from common import xbox_updater, util
+from components import drivetrain, elevator, grabber, field, targeting, ramp
+from common import xbox_updater, util, rumbler
 from controllers import position_controller, angle_controller, \
     trajectory_controller, grabber_orienter_controller, \
     grabber_auto_controller, cube_hunter_controller
@@ -18,6 +18,7 @@ class SpartaBot(magicbot.MagicRobot):
     elevator = elevator.Elevator
     grabber = grabber.Grabber
     field = field.Field
+    ramp = ramp.Ramp
     targeting = targeting.Targeting
 
     position_controller = position_controller.PositionController
@@ -46,6 +47,10 @@ class SpartaBot(magicbot.MagicRobot):
         self.grabber_left_motor = ctre.WPI_TalonSRX(2)
         self.grabber_right_motor = ctre.WPI_TalonSRX(1)
 
+        # Ramp
+        self.ramp_solenoid = wpilib.DoubleSolenoid(3, 4)
+        self.ramp_motor = ctre.WPI_TalonSRX(7)
+
         # Controllers
         self.drive_controller = wpilib.XboxController(0)
         self.operator_controller = wpilib.XboxController(1)
@@ -58,6 +63,7 @@ class SpartaBot(magicbot.MagicRobot):
         self.navx = navx.AHRS.create_spi()
 
     def teleopInit(self):
+        self.elevator.release_lock()
         self.drivetrain.reset_angle_correction()
         self.position_controller.reset_position_and_heading()
 
@@ -68,7 +74,7 @@ class SpartaBot(magicbot.MagicRobot):
             # Unless the right stick is pressed down, scale down turning inputs
             # to keep the robot from flying around the field / overshooting.
             angle = util.scale(angle, -1, 1, -0.75, 0.75)
-        self.drivetrain.differential_drive(
+        self.drivetrain.angle_corrected_differential_drive(
             self.drive_controller.getY(CONTROLLER_LEFT), angle)
 
         # Shifter - toggle into low gear when bumper pressed
@@ -85,6 +91,8 @@ class SpartaBot(magicbot.MagicRobot):
                 self.elevator.raise_to_switch()
             elif controller.getAButton():
                 self.elevator.lower_to_ground()
+            elif controller.getBButton():
+                self.elevator.raise_to_carry()
 
             # Elevator free control
             controller_pov = controller.getPOV(pov=0)
@@ -109,13 +117,29 @@ class SpartaBot(magicbot.MagicRobot):
                 self.grabber_orienter_controller.orient(
                     grabber_orienter_controller.GrabberOrienterSide.FLIPPY)
 
-            # Position testing
-            if controller.getBButton():
-                self.position_controller.move_to(36)
+            # # Position testing
+            # if controller.getBButton():
+            #     self.position_controller.move_to(36)
 
-            # Seek testing
-            if controller.getXButton():
-                self.cube_hunter_controller.seek()
+            # # Cube hunter seeking
+            # if controller.getXButton():
+            #     self.cube_hunter_controller.seek()
+
+            # Ramp deployment
+            if controller.getStartButton() and controller.getBackButton():
+                rumbler.rumble(controller, 1)
+                if not self.hold_start_time:
+                    self.hold_start_time = wpilib.Timer.getFPGATimestamp()
+                elif wpilib.Timer.getFPGATimestamp() - self.hold_start_time \
+                        > ramp.SAFETY_RELEASE_WAIT:
+                    self.ramp.release()
+            else:
+                self.hold_start_time = None
+                rumbler.rumble(controller, 0)
+
+            # Ramp raising
+            if self.ramp.is_released() and controller.getBButton():
+                self.ramp.raise_ramp()
 
         # Pass inputs to dashboard
         xbox_updater.push(self.drive_controller, 'driver')

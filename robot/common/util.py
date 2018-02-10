@@ -1,3 +1,6 @@
+import math
+
+
 def scale(input, input_min, input_max, output_min, output_max):
     """
     Scales an input from one range to another
@@ -37,4 +40,4 @@ def abs_clamp(input, abs_minimum, abs_maximum):
 
     :return: The input value clamped to the abs output range.
     """
-    return clamp(abs(input), abs_minimum, abs_maximum) * (input / abs(input))
+    return math.copysign(clamp(abs(input), abs_minimum, abs_maximum), input)

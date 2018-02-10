@@ -29,8 +29,9 @@ class Drivetrain:
 
     shifter_solenoid = Solenoid
 
-    angle_correction_factor = tunable(0.05)
-    angle_correction_max = tunable(0.1)
+    angle_correction_cutoff = tunable(0.05)
+    angle_correction_factor = tunable(0.1)
+    angle_correction_max = tunable(0.3)
 
     def setup(self):
         self.pending_differential_drive = None
@@ -65,7 +66,6 @@ class Drivetrain:
         '''
         left_position = -self.left_motor_master.getQuadraturePosition()
         right_position = self.right_motor_master.getQuadraturePosition()
-        print('drivetrain pos', 'left', left_position, 'right', right_position)
         return (((left_position + right_position) / 2) *
                 (1 / UNITS_PER_REV) * DISTANCE_PER_REV)
 
@@ -85,10 +85,17 @@ class Drivetrain:
         '''
         Heading must be reset first. (drivetrain.reset_angle_correction())
         '''
-        heading = self.navx.getYaw()
-        correction = util.abs_clamp(-self.angle_correction_factor * heading,
-                                    0, self.angle_correction_max)
-        self.differential_drive(y, rotation + correction)
+        if abs(rotation) <= self.angle_correction_cutoff:
+            heading = self.navx.getYaw()
+            if not self.og_yaw:
+                self.og_yaw = heading
+            rotation = util.abs_clamp(-self.angle_correction_factor *
+                                      (heading - self.og_yaw),
+                                      0, self.angle_correction_max)
+        else:
+            self.og_yaw = None
+
+        self.differential_drive(y, rotation)
 
     def shift_low_gear(self):
         self.pending_gear = LOW_GEAR

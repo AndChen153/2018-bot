@@ -1,8 +1,6 @@
 from collections import namedtuple
 from networktables import NetworkTables
 
-from common.util import scale
-
 TargetingData = namedtuple('TargetingOffset',
                            ['found', 'x', 'y', 'area', 'skew'])
 
@@ -25,15 +23,11 @@ class Targeting:
         self.nt.setNumber('camMode', mode)
 
     def get_data(self):
-        return TargetingData(found=self.nt.getBoolean('tv', False),
-                             x=scale(self.nt.getNumber('tx', 0),
-                                     -27, 27, -1, 1),
-                             y=scale(self.nt.getNumber('ty', 0),
-                                     -20.5, 20.5, 1, 1),
-                             area=scale(self.nt.getNumber('ta', 0),
-                                        0, 100, 0, 1),
-                             skew=scale(self.nt.getNumber('ts', 0),
-                                        -90, 0, 0, 1))
+        return TargetingData(found=self.nt.getNumber('tv', 0) == 1,
+                             x=self.nt.getNumber('tx', 0),
+                             y=self.nt.getNumber('ty', 0),
+                             area=self.nt.getNumber('ta', 0),
+                             skew=self.nt.getNumber('ts', 0))
 
     def execute(self):
         pass

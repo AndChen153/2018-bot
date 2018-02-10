@@ -17,11 +17,11 @@ class AngleController(BasePIDComponent):
     # kD = tunable(0.0005)
     # kF = tunable(0.0)
 
-    kP = tunable(0.01)
-    kI = tunable(0.0006)
-    kD = tunable(0.02)
-    kF = tunable(0.005)
-    kToleranceDegrees = tunable(0.1)
+    kP = tunable(0.125)
+    kI = tunable(0)
+    kD = tunable(0.5)
+    kF = tunable(0)
+    kToleranceDegrees = tunable(0.5)
     kIzone = tunable(0.25)
 
     navx = navx.AHRS
@@ -29,7 +29,7 @@ class AngleController(BasePIDComponent):
     def __init__(self):
         super().__init__(self.get_angle, 'angle_controller')
 
-        self.set_abs_output_range(0.1, 0.4)
+        self.set_abs_output_range(0.18, 0.25)
 
         if hasattr(self, 'pid'):
             self.pid.setInputRange(-180.0, 180.0)
@@ -42,7 +42,7 @@ class AngleController(BasePIDComponent):
         """
         Return the robot's current heading.
         """
-        print('current_angle', self.navx.getYaw())
+        # print('current_angle', self.navx.getYaw())
         return self.navx.getYaw()
 
     def align_to(self, angle):
@@ -80,6 +80,7 @@ class AngleController(BasePIDComponent):
         return abs(error) < self.kToleranceDegrees
 
     def reset_angle(self):
+        self.drivetrain.shift_low_gear()
         self.navx.reset()
 
     def compute_error(self, setpoint, pid_input):
@@ -105,7 +106,10 @@ class AngleController(BasePIDComponent):
             if self.is_aligned():
                 self.stop()
             else:
-                self.drivetrain.turn(self.rate, force=True)
+                self.drivetrain.turn(-self.rate, force=True)
 
     def stop(self):
         self.drivetrain.differential_drive(0)
+
+    def on_disable(self):
+        self.stop()

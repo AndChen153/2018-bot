@@ -16,8 +16,9 @@ class CubeHunterController(StateMachine):
     x_tolerance = tunable(0.1)
     y_tolerance = tunable(0.1)
 
+    y_factor = tunable(0.001)
     rotation_factor = tunable(0.5)
-    min_rotation = tunable(0.2)
+    min_rotation = tunable(0)
     max_rotation = tunable(1)
     high_speed_rotation_cutoff = tunable(0.5)
     high_speed_rotation_speed = tunable(0.4)
@@ -37,9 +38,11 @@ class CubeHunterController(StateMachine):
         rotation = 0
         min_speed = self.min_speed
 
+        print('data', data)
+
         # Just give up if we can't find the cube :'(
         if not data.found:
-            return
+            return False
 
         x_offset = data.x - self.ideal_x
         y_offset = data.y - self.ideal_y
@@ -63,6 +66,8 @@ class CubeHunterController(StateMachine):
 
         self.drivetrain.differential_drive(speed, rotation, squared=False)
 
+        print('cube_hunter#moving_to_position', 'speed', speed, 'rotation', rotation)
+
         return within_x_tolerance and within_y_tolerance
 
     @state(first=True)
@@ -76,3 +81,6 @@ class CubeHunterController(StateMachine):
 
     def done(self):
         super().done()
+
+    def on_disable(self):
+        self.done()

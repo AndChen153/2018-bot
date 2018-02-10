@@ -54,3 +54,7 @@ class TrajectoryController:
                         self.current_action.position)
                     if self.position_controller.is_at_location():
                         self.current_action = None
+
+    def on_disable(self):
+        self.current_action = None
+        self.actions = []
