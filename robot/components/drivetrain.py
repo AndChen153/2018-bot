@@ -39,6 +39,7 @@ class Drivetrain:
         self.pending_gear = HIGH_GEAR
         self.pending_position = None
         self.pending_reset = False
+        self.og_yaw = None
 
         # Set encoders
         self.left_motor_master.configSelectedFeedbackSensor(
