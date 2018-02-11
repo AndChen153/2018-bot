@@ -23,7 +23,7 @@ class SingleCube(StatefulAutonomous):
         self.elevator.raise_to_switch()
         self.trajectory_controller.reset()
         switch_side = self.field.get_switch_side()
-        if switch_side:
+        if switch_side is not None:
             sign = 1 if switch_side == SwitchState.RIGHT else -1
             self.trajectory_controller.push(rotate=25 * sign)
             self.trajectory_controller.push(position=110)

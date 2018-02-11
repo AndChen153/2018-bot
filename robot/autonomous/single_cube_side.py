@@ -22,20 +22,18 @@ class SingleCubeSide(StatefulAutonomous):
     def prepare_to_start(self):
         self.trajectory_controller.reset()
         switch_side = self.field.get_switch_side()
-        if switch_side:
+        if switch_side is not None:
             sign = 1 if self.start_side == SwitchState.LEFT else -1
             if switch_side == self.start_side:
-                self.trajectory_controller.push(position=36)
+                self.trajectory_controller.push(position=170)
                 self.trajectory_controller.push(rotate=90 * sign)
-                self.trajectory_controller.push(position=5)
+                self.trajectory_controller.push(position=10, timeout=3)
             else:
-                self.trajectory_controller.push(position=50)
+                self.trajectory_controller.push(position=130)
                 self.trajectory_controller.push(rotate=90 * sign)
-                self.trajectory_controller.push(position=40)
+                self.trajectory_controller.push(position=80)
                 self.trajectory_controller.push(rotate=90 * sign)
-                self.trajectory_controller.push(position=10)
-                self.trajectory_controller.push(rotate=90 * sign)
-                self.trajectory_controller.push(position=5)
+                self.trajectory_controller.push(position=10, timeout=3)
             self.next_state('execute_trajectory')
 
     @state

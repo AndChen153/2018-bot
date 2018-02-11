@@ -14,7 +14,7 @@ class PositionController(BasePIDComponent):
     kI = tunable(0.00003)
     kD = tunable(0.05)
     kF = tunable(0.0)
-    kToleranceInches = tunable(0.1)
+    kToleranceInches = tunable(0.5)
     kIzone = tunable(0.5)
 
     angle_controller = AngleController

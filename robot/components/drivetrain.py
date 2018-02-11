@@ -33,6 +33,8 @@ class Drivetrain:
     angle_correction_factor = tunable(0.1)
     angle_correction_max = tunable(0.3)
 
+    little_rotation_cutoff = tunable(0.1)
+
     def setup(self):
         self.pending_differential_drive = None
         self.force_differential_drive = False
@@ -86,6 +88,8 @@ class Drivetrain:
         '''
         Heading must be reset first. (drivetrain.reset_angle_correction())
         '''
+
+        # Angle correction
         if abs(rotation) <= self.angle_correction_cutoff:
             heading = self.navx.getYaw()
             if not self.og_yaw:
@@ -95,6 +99,10 @@ class Drivetrain:
                                       0, self.angle_correction_max)
         else:
             self.og_yaw = None
+
+        # Small rotation at lower speeds
+        if abs(y) <= self.little_rotation_cutoff:
+            rotation = util.abs_clamp(rotation, 0, 0.5)
 
         self.differential_drive(y, rotation)
 

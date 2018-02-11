@@ -138,7 +138,8 @@ class SpartaBot(magicbot.MagicRobot):
                 rumbler.rumble(controller, 0)
 
             # Ramp raising
-            if self.ramp.is_released() and controller.getXButton():
+            # if self.ramp.is_released() and controller.getXButton():
+            if controller.getXButton():
                 self.ramp.raise_ramp()
 
         # Pass inputs to dashboard
