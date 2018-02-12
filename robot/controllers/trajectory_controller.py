@@ -18,8 +18,9 @@ class TrajectoryController:
         self.has_reset = False
         self.timeout_start = None
 
-    def push(self, rotate=None, position=None):
-        self.actions.append(TrajectoryAction(rotate=rotate, position=position))
+    def push(self, rotate=None, position=None, timeout=None):
+        self.actions.append(TrajectoryAction(rotate=rotate, position=position,
+                                             timeout=timeout))
 
     def reset(self):
         self.actions = []

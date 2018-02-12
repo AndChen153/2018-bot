@@ -20,6 +20,7 @@ class SingleCube(StatefulAutonomous):
 
     @state(first=True)
     def prepare_to_start(self):
+        self.elevator.release_lock()
         self.elevator.raise_to_switch()
         self.trajectory_controller.reset()
         switch_side = self.field.get_switch_side()
@@ -36,10 +37,6 @@ class SingleCube(StatefulAutonomous):
         if self.trajectory_controller.is_finished():
             self.next_state('deposit')
 
-    @timed_state(duration=3, next_state='release_lock')
+    @timed_state(duration=3)
     def deposit(self):
         self.grabber.deposit()
-
-    @timed_state(duration=2)
-    def release_lock(self):
-        self.elevator.release_lock()

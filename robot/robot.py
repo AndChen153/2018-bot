@@ -55,6 +55,9 @@ class SpartaBot(magicbot.MagicRobot):
         self.drive_controller = wpilib.XboxController(0)
         self.operator_controller = wpilib.XboxController(1)
 
+        # Compressor
+        self.compressor = wpilib.Compressor()
+
         # Initialize dashboard
         xbox_updater.push(self.drive_controller, 'driver')
         xbox_updater.push(self.operator_controller, 'operator')
@@ -66,6 +69,7 @@ class SpartaBot(magicbot.MagicRobot):
         self.elevator.release_lock()
         self.drivetrain.reset_angle_correction()
         self.position_controller.reset_position_and_heading()
+        self.trajectory_controller.reset()
 
     def teleopPeriodic(self):
         # Drive with controller
@@ -121,9 +125,12 @@ class SpartaBot(magicbot.MagicRobot):
             # if controller.getBButton():
             #     self.position_controller.move_to(36)
 
-            # # Cube hunter seeking
-            # if controller.getXButton():
-            #     self.cube_hunter_controller.seek()
+            # Cube hunter seeking
+            if controller.getStartButton() and not controller.getBackButton():
+                rumbler.rumble(controller, 1)
+                self.cube_hunter_controller.seek()
+            else:
+                rumbler.rumble(controller, 0)
 
             # Ramp deployment
             if controller.getStartButton() and controller.getBackButton():
@@ -141,6 +148,14 @@ class SpartaBot(magicbot.MagicRobot):
             # if self.ramp.is_released() and controller.getXButton():
             if controller.getXButton():
                 self.ramp.raise_ramp()
+
+            # Compressor's a bitch
+            if controller.getBackButtonReleased() and not \
+                    controller.getStartButton():
+                if self.compressor.enabled():
+                    self.compressor.stop()
+                else:
+                    self.compressor.start()
 
         # Pass inputs to dashboard
         xbox_updater.push(self.drive_controller, 'driver')

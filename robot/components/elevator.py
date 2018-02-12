@@ -11,6 +11,7 @@ UNITS_PER_REV = 4096
 DISTANCE_PER_REV = math.pi * 1.786  # pi * sprocket diameter
 
 GROUND_CUTOFF = 250
+POSITION_TOLERANCE = 250
 
 
 class ElevatorState(IntEnum):
@@ -42,7 +43,7 @@ class Elevator:
     error = tunable(0)
 
     def setup(self):
-        self.pending_state = None
+        self.state = ElevatorState.LOCKED
         self.pending_position = None
         self.pending_drive = None
 
@@ -70,11 +71,15 @@ class Elevator:
     def is_at_ground(self):
         return self.get_encoder_position() <= GROUND_CUTOFF
 
+    def is_at_position(self, position):
+        return abs(self.get_encoder_position() - position) <= \
+            POSITION_TOLERANCE
+
     def lock(self):
-        self.pending_state = ElevatorState.LOCKED
+        self.state = ElevatorState.LOCKED
 
     def release_lock(self):
-        self.pending_state = ElevatorState.RELEASED
+        self.state = ElevatorState.RELEASED
 
     def raise_to_switch(self):
         self.pending_position = ElevatorPosition.SWITCH
@@ -143,7 +148,7 @@ class Elevator:
                 # Drive downwards until we zero it... and cross our fingers...
                 self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput,
                                -self.kZeroingSpeed)
-            else:
+            elif self.has_zeroed:  # Don't drive positionally if not zeroed
                 self.motor.set(WPI_TalonSRX.ControlMode.Position,
                                self.pending_position)
         else:
@@ -156,12 +161,10 @@ class Elevator:
             self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput, 0)
 
         # Elevator deployment/retraction
-        if self.pending_state:
-            if self.pending_state == ElevatorState.LOCKED:
-                self.solenoid.set(DoubleSolenoid.Value.kForward)
-            elif self.pending_state == ElevatorState.RELEASED:
-                self.solenoid.set(DoubleSolenoid.Value.kReverse)
-            self.pending_state = None
+        if self.state == ElevatorState.LOCKED:
+            self.solenoid.set(DoubleSolenoid.Value.kReverse)
+        elif self.state == ElevatorState.RELEASED:
+            self.solenoid.set(DoubleSolenoid.Value.kForward)
 
         # Update dashboard PID values
         if self.pending_position:

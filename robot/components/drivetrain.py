@@ -30,7 +30,8 @@ class Drivetrain:
     shifter_solenoid = Solenoid
 
     angle_correction_cutoff = tunable(0.05)
-    angle_correction_factor = tunable(0.1)
+    angle_correction_factor_low_gear = tunable(0.1)
+    angle_correction_factor_high_gear = tunable(0.2)
     angle_correction_max = tunable(0.3)
 
     little_rotation_cutoff = tunable(0.1)
@@ -94,7 +95,10 @@ class Drivetrain:
             heading = self.navx.getYaw()
             if not self.og_yaw:
                 self.og_yaw = heading
-            rotation = util.abs_clamp(-self.angle_correction_factor *
+            factor = self.angle_correction_factor_high_gear if \
+                self.pending_gear == HIGH_GEAR else \
+                self.angle_correction_factor_low_gear
+            rotation = util.abs_clamp(-factor *
                                       (heading - self.og_yaw),
                                       0, self.angle_correction_max)
         else:
@@ -102,7 +106,7 @@ class Drivetrain:
 
         # Small rotation at lower speeds
         if abs(y) <= self.little_rotation_cutoff:
-            rotation = util.abs_clamp(rotation, 0, 0.5)
+            rotation = util.abs_clamp(rotation, 0, 0.8)
 
         self.differential_drive(y, rotation)
 

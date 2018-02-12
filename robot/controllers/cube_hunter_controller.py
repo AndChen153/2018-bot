@@ -16,21 +16,27 @@ class CubeHunterController(StateMachine):
     x_tolerance = tunable(0.1)
     y_tolerance = tunable(0.1)
 
-    y_factor = tunable(0.001)
+    y_factor = tunable(0.1)
     rotation_factor = tunable(0.5)
     min_rotation = tunable(0)
-    max_rotation = tunable(1)
+    max_rotation = tunable(0.3)
     high_speed_rotation_cutoff = tunable(0.5)
     high_speed_rotation_speed = tunable(0.4)
 
     min_speed = tunable(0.1)
-    max_speed = tunable(0.3)
+    max_speed = tunable(0.4)
+
+    def reset(self):
+        self.acquired = False
 
     def seek(self):
         self.engage()
 
     def is_seeking(self):
         return self.is_executing
+
+    def is_acquired(self):
+        return self.acquired
 
     def _move_to_position(self):
         data = self.targeting.get_data()
@@ -64,7 +70,8 @@ class CubeHunterController(StateMachine):
         # Rotation: flip based upon forwards/backwards
         rotation *= abs(speed) / speed
 
-        self.drivetrain.differential_drive(speed, rotation, squared=False)
+        self.drivetrain.differential_drive(-speed, rotation, squared=False,
+                                           force=True)
 
         print('cube_hunter#moving_to_position', 'speed', speed, 'rotation', rotation)
 
@@ -77,6 +84,7 @@ class CubeHunterController(StateMachine):
     @state
     def moving_to_position(self):
         if self._move_to_position():
+            self.acquired = True
             self.next_state('done')
 
     def done(self):
