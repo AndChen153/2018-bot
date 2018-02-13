@@ -81,10 +81,11 @@ class TwoCube(StatefulAutonomous):
 
     def rotate_back(self):
         self.elevator.raise_to_switch()
-        self.angle_controller.align_to(90 * self.sign +
-                                       self.pre_hunting_angle)
+        self.angle_controller.align_to(self.pre_hunting_angle)
         if self.angle_controller.is_aligned() and \
                 self.elevator.is_at_position(ElevatorPosition.SWITCH):
+            self.trajectory_controller.push(position=-20)
+            self.trajectory_controller.push(rotate=90 * self.sign)
             self.trajectory_controller.push(position=5, timeout=2)
             self.next_state('execute_move_trajectory')
 

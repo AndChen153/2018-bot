@@ -16,6 +16,7 @@ class RampState(IntEnum):
 class WinchState(IntEnum):
     DISABLED = 0
     RAISING = 1
+    LOWERING = 2
 
 
 class Ramp:
@@ -42,10 +43,16 @@ class Ramp:
     def raise_ramp(self):
         self.pending_winch = WinchState.RAISING
 
+    def lower_ramp(self):
+        self.pending_winch = WinchState.LOWERING
+
     def execute(self):
         # Winch
         if self.pending_winch == WinchState.RAISING:
             self.motor.set(self.speed)
+            self.pending_winch = WinchState.DISABLED
+        elif self.pending_winch == WinchState.LOWERING:
+            self.motor.set(-self.speed)
             self.pending_winch = WinchState.DISABLED
         else:
             self.motor.set(0)

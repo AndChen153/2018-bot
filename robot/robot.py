@@ -2,7 +2,8 @@ import magicbot
 import wpilib
 import ctre
 from robotpy_ext.common_drivers import navx
-from components import drivetrain, elevator, grabber, field, targeting, ramp
+from components import bot, drivetrain, elevator, grabber, field, \
+    targeting, ramp
 from common import xbox_updater, util, rumbler
 from controllers import position_controller, angle_controller, \
     trajectory_controller, grabber_orienter_controller, \
@@ -14,6 +15,7 @@ CONTROLLER_RIGHT = wpilib.XboxController.Hand.kRight
 
 class SpartaBot(magicbot.MagicRobot):
 
+    bot = bot.Bot
     drivetrain = drivetrain.Drivetrain
     elevator = elevator.Elevator
     grabber = grabber.Grabber
@@ -57,6 +59,9 @@ class SpartaBot(magicbot.MagicRobot):
 
         # Compressor
         self.compressor = wpilib.Compressor()
+
+        # LEDs
+        self.led_driver = wpilib.Spark(0)
 
         # Initialize dashboard
         xbox_updater.push(self.drive_controller, 'driver')
@@ -111,7 +116,7 @@ class SpartaBot(magicbot.MagicRobot):
             elif controller_pov == 270:
                 self.elevator.move_incremental(-1)
 
-            # Grabber - right trigger for flippy & full intake,
+            # Grabber - right trigger for full intake, right bumper for flippy,
             # left trigger to deposit cube.
             if controller.getTriggerAxis(CONTROLLER_RIGHT):
                 self.grabber.intake()
@@ -127,10 +132,7 @@ class SpartaBot(magicbot.MagicRobot):
 
             # Cube hunter seeking
             if controller.getStartButton() and not controller.getBackButton():
-                rumbler.rumble(controller, 1)
                 self.cube_hunter_controller.seek()
-            else:
-                rumbler.rumble(controller, 0)
 
             # Ramp deployment
             if controller.getStartButton() and controller.getBackButton():
@@ -149,13 +151,16 @@ class SpartaBot(magicbot.MagicRobot):
             if controller.getXButton():
                 self.ramp.raise_ramp()
 
+            if controller.getBackButton():
+                self.ramp.lower_ramp()
+
             # Compressor's a bitch
-            if controller.getBackButtonReleased() and not \
-                    controller.getStartButton():
-                if self.compressor.enabled():
-                    self.compressor.stop()
-                else:
-                    self.compressor.start()
+            # if controller.getBackButtonReleased() and not \
+            #         controller.getStartButton():
+            #     if self.compressor.enabled():
+            #         self.compressor.stop()
+            #     else:
+            #         self.compressor.start()
 
         # Pass inputs to dashboard
         xbox_updater.push(self.drive_controller, 'driver')

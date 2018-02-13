@@ -27,18 +27,18 @@ class TwoCubeSide(StatefulAutonomous):
         self.trajectory_controller.reset()
         switch_side = self.field.get_switch_side()
         if switch_side is not None:
-            sign = 1 if self.start_side == SwitchState.LEFT else -1
+            self.sign = 1 if self.start_side == SwitchState.LEFT else -1
             if switch_side == self.start_side:
                 self.trajectory_controller.push(position=228)
-                self.trajectory_controller.push(rotate=90 * sign)
+                self.trajectory_controller.push(rotate=90 * self.sign)
                 self.trajectory_controller.push(position=60)
-                self.trajectory_controller.push(rotate=90 * sign)
+                self.trajectory_controller.push(rotate=90 * self.sign)
                 self.trajectory_controller.push(position=10, timeout=3)
             else:
                 self.trajectory_controller.push(position=228)
-                self.trajectory_controller.push(rotate=90 * sign)
+                self.trajectory_controller.push(rotate=90 * self.sign)
                 self.trajectory_controller.push(position=175)
-                self.trajectory_controller.push(rotate=90 * sign)
+                self.trajectory_controller.push(rotate=90 * self.sign)
                 self.trajectory_controller.push(position=10, timeout=3)
             self.next_state('execute_trajectory')
 
