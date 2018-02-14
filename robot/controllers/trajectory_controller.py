@@ -28,7 +28,7 @@ class TrajectoryController:
         self.has_reset = False
 
     def is_finished(self):
-        return len(self.actions) == 0
+        return len(self.actions) == 0 and not self.current_action
 
     def execute(self):
         if not self.current_action:
@@ -61,7 +61,7 @@ class TrajectoryController:
                     if self.position_controller.is_at_location():
                         self.current_action = None
 
-            if self.current_action.timeout:
+            if self.current_action and self.current_action.timeout:
                 if Timer.getFPGATimestamp() - self.timeout_start > \
                         self.current_action.timeout:
                     self.current_action = None

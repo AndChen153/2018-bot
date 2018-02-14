@@ -2,6 +2,8 @@ from magicbot import tunable
 from ctre import WPI_TalonSRX
 from enum import IntEnum
 
+CUBE_CURRENT_CUTOFF = 7
+
 
 class GrabberState(IntEnum):
     DISABLED = 0
@@ -24,6 +26,9 @@ class Grabber:
 
         self.right_motor.setInverted(True)
 
+    def has_cube(self):
+        return self.left_motor.getOutputCurrent() > CUBE_CURRENT_CUTOFF
+
     def intake(self):
         self.pending_state = GrabberState.INTAKING
 
@@ -39,6 +44,8 @@ class Grabber:
         self.independent_control_priority = priority
 
     def execute(self):
+        # print('output_current', self.left_motor.getOutputCurrent())
+
         # Independent motor control - bypass all the normal controls
         if self.pending_independent_control:
 

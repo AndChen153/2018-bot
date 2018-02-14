@@ -4,11 +4,13 @@ from common.util import abs_clamp
 
 from components.drivetrain import Drivetrain
 from components.targeting import Targeting
+from components.grabber import Grabber
 
 
 class CubeHunterController(StateMachine):
     drivetrain = Drivetrain
     targeting = Targeting
+    grabber = Grabber
 
     ideal_x = tunable(0)
     ideal_y = tunable(0)
@@ -75,7 +77,7 @@ class CubeHunterController(StateMachine):
 
         print('cube_hunter#moving_to_position', 'speed', speed, 'rotation', rotation)
 
-        return within_x_tolerance and within_y_tolerance
+        return self.grabber.has_cube()
 
     @state(first=True)
     def inital_state(self):
@@ -85,10 +87,7 @@ class CubeHunterController(StateMachine):
     def moving_to_position(self):
         if self._move_to_position():
             self.acquired = True
-            self.next_state('done')
-
-    def done(self):
-        super().done()
+            self.done()
 
     def on_disable(self):
         self.done()

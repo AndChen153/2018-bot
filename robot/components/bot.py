@@ -1,9 +1,8 @@
 from enum import Enum
 from wpilib import Spark
-# from networktables import NetworkTables
 
 
-class LedState(Enum):
+class LedState(float, Enum):
     RAINBOW = -0.89
     BREATH = 0.11
 
@@ -16,7 +15,7 @@ class Bot:
         self.led_state = LedState.RAINBOW
 
     def set_led_state(self, state):
-        self.led_driver.set(state)
+        self.led_state = state
 
     def execute(self):
-        self.led_driver.set(self.state)
+        self.led_driver.set(self.led_state)

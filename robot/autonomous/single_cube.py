@@ -10,7 +10,7 @@ from components.field import Field, SwitchState
 class SingleCube(StatefulAutonomous):
 
     MODE_NAME = 'Single Cube From Center'
-    DEFAULT = True
+    DEFAULT = False
 
     trajectory_controller = TrajectoryController
     drivetrain = Drivetrain

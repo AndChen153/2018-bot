@@ -29,6 +29,8 @@ class AngleController(BasePIDComponent):
     def __init__(self):
         super().__init__(self.get_angle, 'angle_controller')
 
+        self.last_angle = 0
+
         self.set_abs_output_range(0.18, 0.25)
 
         if hasattr(self, 'pid'):
@@ -43,7 +45,12 @@ class AngleController(BasePIDComponent):
         Return the robot's current heading.
         """
         # print('current_angle', self.navx.getYaw())
-        return self.navx.getYaw()
+        try:
+            self.last_angle = self.navx.getYaw()
+            return self.last_angle
+        except Exception as e:
+            print('!!! gyro error, falling back', e)
+            return self.last_angle
 
     def align_to(self, angle):
         """
