@@ -5,7 +5,7 @@ from enum import IntEnum
 
 
 # Time in seconds to wait after buttons are held before deploying the ramps.
-SAFETY_RELEASE_WAIT = 2
+SAFETY_RELEASE_WAIT = 1
 
 
 class RampState(IntEnum):
@@ -59,9 +59,9 @@ class Ramp:
 
         # Solenoid lock
         if self.state == RampState.LOCKED:
-            self.solenoid.set(DoubleSolenoid.Value.kForward)
-        elif self.state == RampState.RELEASED:
             self.solenoid.set(DoubleSolenoid.Value.kReverse)
+        elif self.state == RampState.RELEASED:
+            self.solenoid.set(DoubleSolenoid.Value.kForward)
 
     def on_disabled(self):
         self.motor.set(0)

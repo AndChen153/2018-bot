@@ -52,6 +52,7 @@ class SpartaBot(magicbot.MagicRobot):
         # Ramp
         self.ramp_solenoid = wpilib.DoubleSolenoid(3, 4)
         self.ramp_motor = ctre.WPI_TalonSRX(7)
+        self.hold_start_time = None
 
         # Controllers
         self.drive_controller = wpilib.XboxController(0)
@@ -142,7 +143,9 @@ class SpartaBot(magicbot.MagicRobot):
                 elif wpilib.Timer.getFPGATimestamp() - self.hold_start_time \
                         > ramp.SAFETY_RELEASE_WAIT:
                     self.ramp.release()
-            else:
+
+            if controller.getStartButtonReleased() and \
+                    controller.getBackButtonReleased():
                 self.hold_start_time = None
                 rumbler.rumble(controller, 0)
 
@@ -170,6 +173,9 @@ class SpartaBot(magicbot.MagicRobot):
         # Pass inputs to dashboard
         xbox_updater.push(self.drive_controller, 'driver')
         xbox_updater.push(self.operator_controller, 'operator')
+
+        # Lock ramps
+        self.ramp.lock()
 
 
 if __name__ == '__main__':

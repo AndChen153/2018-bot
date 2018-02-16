@@ -11,6 +11,7 @@ from components.field import Field, SwitchState
 class TwoCubeSide(StatefulAutonomous):
 
     DEFAULT = False
+    ONE_CUBE_ONLY = False
     start_side = None
 
     angle_controller = AngleController
@@ -50,10 +51,14 @@ class TwoCubeSide(StatefulAutonomous):
     @timed_state(duration=3, next_state='back_up_to_hunt')
     def deposit(self):
         self.grabber.deposit()
+        if self.ONE_CUBE_ONLY:
+            self.done()
 
     @state
     def back_up_to_hunt(self):
-        self.trajectory_controller.push(position=-10)
+        self.trajectory_controller.push(position=-20)
+        self.trajectory_controller.push(position=45 * self.sign)
+        self.trajectory_controller.push(position=10)
         self.next_state('execute_hunt_trajectory')
 
     @state
@@ -61,14 +66,6 @@ class TwoCubeSide(StatefulAutonomous):
         self.elevator.lower_to_ground()
         if self.trajectory_controller.is_finished() and \
                 self.elevator.is_at_position(ElevatorPosition.GROUND):
-            self.pre_hunting_angle = self.angle_controller.get_angle()
-            self.cube_hunter_controller.reset()
-            self.next_state('find_second_cube')
-
-    @state
-    def find_second_cube(self):
-        self.cube_hunter_controller.seek()
-        if self.cube_hunter_controller.is_acquired():
             self.next_state('intake_second_cube')
 
     @timed_state(duration=1, next_state='rotate_back')
@@ -77,10 +74,11 @@ class TwoCubeSide(StatefulAutonomous):
 
     def rotate_back(self):
         self.elevator.raise_to_switch()
-        self.angle_controller.align_to(self.pre_hunting_angle)
-        if self.angle_controller.is_aligned() and \
+        self.trajectory_controller.push(position=-10)
+        self.trajectory_controller.push(position=-45 * self.sign)
+        self.trajectory_controller.push(position=10, timeout=2)
+        if self.trajectory_controller.is_finished() and \
                 self.elevator.is_at_position(ElevatorPosition.SWITCH):
-            self.trajectory_controller.push(position=5, timeout=2)
             self.next_state('execute_move_trajectory')
 
     @state

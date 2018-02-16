@@ -46,8 +46,6 @@ class CubeHunterController(StateMachine):
         rotation = 0
         min_speed = self.min_speed
 
-        print('data', data)
-
         # Just give up if we can't find the cube :'(
         if not data.found:
             return False
@@ -75,7 +73,8 @@ class CubeHunterController(StateMachine):
         self.drivetrain.differential_drive(-speed, rotation, squared=False,
                                            force=True)
 
-        print('cube_hunter#moving_to_position', 'speed', speed, 'rotation', rotation)
+        # print('cube_hunter#moving_to_position',
+        #   'speed', speed, 'rotation', rotation)
 
         return self.grabber.has_cube()
 
