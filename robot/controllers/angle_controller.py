@@ -21,7 +21,7 @@ class AngleController(BasePIDComponent):
     kI = tunable(0)
     kD = tunable(0.5)
     kF = tunable(0)
-    kToleranceDegrees = tunable(0.5)
+    kToleranceDegrees = tunable(0.75)
     kIzone = tunable(0.25)
 
     navx = navx.AHRS
@@ -31,7 +31,7 @@ class AngleController(BasePIDComponent):
 
         self.last_angle = 0
 
-        self.set_abs_output_range(0.18, 0.25)
+        self.set_abs_output_range(0.18, 0.35)
 
         if hasattr(self, 'pid'):
             self.pid.setInputRange(-180.0, 180.0)

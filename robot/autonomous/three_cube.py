@@ -32,9 +32,10 @@ class ThreeCube(StatefulAutonomous):
         switch_side = self.field.get_switch_side()
         if switch_side:
             self.sign = 1 if switch_side == SwitchState.RIGHT else -1
-            self.trajectory_controller.push(rotate=30 * self.sign)
-            self.trajectory_controller.push(position=110)
-            self.trajectory_controller.push(rotate=-30 * self.sign)
+            self.trajectory_controller.push(position=15)
+            self.trajectory_controller.push(rotate=35 * self.sign)
+            self.trajectory_controller.push(position=90)
+            self.trajectory_controller.push(rotate=-35 * self.sign)
             self.trajectory_controller.push(position=10, timeout=0.5)
             self.next_state('execute_trajectory')
 
@@ -53,9 +54,9 @@ class ThreeCube(StatefulAutonomous):
     def go_down(self):
         self.elevator.lower_to_ground()
         self.trajectory_controller.reset()
-        self.trajectory_controller.push(position=-67)
-        self.trajectory_controller.push(rotate=-45 * self.sign)
-        self.trajectory_controller.push(position=65, timeout=5)
+        self.trajectory_controller.push(position=-59)
+        self.trajectory_controller.push(rotate=-43 * self.sign)
+        self.trajectory_controller.push(position=40, timeout=4)
         self.next_state('lower')
 
     @state
@@ -72,9 +73,9 @@ class ThreeCube(StatefulAutonomous):
     def rotate_back(self):
         self.elevator.raise_to_switch()
         self.trajectory_controller.reset()
-        self.trajectory_controller.push(position=-65)
-        self.trajectory_controller.push(rotate=45 * self.sign)
-        self.trajectory_controller.push(position=77, timeout=5)
+        self.trajectory_controller.push(position=-40)
+        self.trajectory_controller.push(rotate=43 * self.sign)
+        self.trajectory_controller.push(position=67, timeout=4)
         self.next_state('execute_move_trajectory')
 
     @state
@@ -93,9 +94,9 @@ class ThreeCube(StatefulAutonomous):
     def go_down_for_third_cube(self):
         self.elevator.lower_to_ground()
         self.trajectory_controller.reset()
-        self.trajectory_controller.push(position=-55)
-        self.trajectory_controller.push(rotate=-45 * self.sign)
-        self.trajectory_controller.push(position=60)
+        self.trajectory_controller.push(position=-50)
+        self.trajectory_controller.push(rotate=-40 * self.sign)
+        self.trajectory_controller.push(position=30)
         self.next_state('lower_for_third_cube')
 
     @state
@@ -112,9 +113,9 @@ class ThreeCube(StatefulAutonomous):
     def rotate_back_from_third(self):
         self.elevator.raise_to_switch()
         self.trajectory_controller.reset()
-        self.trajectory_controller.push(position=-60)
-        self.trajectory_controller.push(rotate=45 * self.sign)
-        self.trajectory_controller.push(position=70, timeout=3)
+        self.trajectory_controller.push(position=-30)
+        self.trajectory_controller.push(rotate=40 * self.sign)
+        self.trajectory_controller.push(position=30, timeout=3)
         self.next_state('execute_third_move_trajectory')
 
     @state
@@ -123,7 +124,7 @@ class ThreeCube(StatefulAutonomous):
                 self.elevator.is_at_position(ElevatorPosition.SWITCH):
             self.next_state('deposit_third_cube')
 
-    @timed_state(duration=0.75)
+    @timed_state(duration=1)
     def deposit_third_cube(self):
         self.grabber.deposit()
 

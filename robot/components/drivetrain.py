@@ -1,7 +1,8 @@
 import math
 from collections import namedtuple
 from ctre import WPI_TalonSRX
-from wpilib import RobotDrive, Solenoid
+from wpilib import Solenoid
+from wpilib.drive import DifferentialDrive
 from magicbot import tunable
 from robotpy_ext.common_drivers import navx
 
@@ -9,7 +10,8 @@ from constants import TALON_TIMEOUT
 from common import util
 
 DifferentialDriveConfig = namedtuple('DifferentialDriveConfig',
-                                     ['y', 'rotation', 'squared'])
+                                     ['y', 'rotation', 'squared',
+                                      'quick_turn'])
 
 HIGH_GEAR = False
 LOW_GEAR = True
@@ -29,17 +31,18 @@ class Drivetrain:
 
     shifter_solenoid = Solenoid
 
+    arcade_cutoff = tunable(0.1)
     angle_correction_cutoff = tunable(0.05)
     angle_correction_factor_low_gear = tunable(0.1)
-    angle_correction_factor_high_gear = tunable(0.2)
-    angle_correction_max = tunable(0.3)
+    angle_correction_factor_high_gear = tunable(0.1)
+    angle_correction_max = tunable(0.2)
 
     little_rotation_cutoff = tunable(0.1)
 
     def setup(self):
         self.pending_differential_drive = None
         self.force_differential_drive = False
-        self.pending_gear = HIGH_GEAR
+        self.pending_gear = LOW_GEAR
         self.pending_position = None
         self.pending_reset = False
         self.og_yaw = None
@@ -58,8 +61,9 @@ class Drivetrain:
                                    self.right_motor_master.getDeviceID())
 
         # Set up drive control
-        self.robot_drive = RobotDrive(self.left_motor_master,
-                                      self.right_motor_master)
+        self.robot_drive = DifferentialDrive(self.left_motor_master,
+                                             self.right_motor_master)
+        self.robot_drive.setDeadband(0)
 
     def reset_position(self):
         self.pending_reset = True
@@ -73,10 +77,11 @@ class Drivetrain:
         return (((left_position + right_position) / 2) *
                 (1 / UNITS_PER_REV) * DISTANCE_PER_REV)
 
-    def differential_drive(self, y, rotation=0, squared=True, force=False):
+    def differential_drive(self, y, rotation=0, squared=True, force=False,
+                           quick_turn=False):
         if not self.force_differential_drive:
             self.pending_differential_drive = DifferentialDriveConfig(
-                y=y, rotation=rotation, squared=squared)
+                y=y, rotation=rotation, squared=squared, quick_turn=quick_turn)
             self.force_differential_drive = force
 
     def turn(self, rotation=0, force=False):
@@ -106,7 +111,7 @@ class Drivetrain:
 
         # Small rotation at lower speeds
         if abs(y) <= self.little_rotation_cutoff:
-            rotation = util.abs_clamp(rotation, 0, 0.8)
+            rotation = util.abs_clamp(rotation, 0, 0.75)
 
         self.differential_drive(y, rotation)
 
@@ -131,10 +136,19 @@ class Drivetrain:
 
         # Drive
         if self.pending_differential_drive:
-            self.robot_drive.arcadeDrive(
-                self.pending_differential_drive.y,
-                self.pending_differential_drive.rotation,
-                squaredInputs=self.pending_differential_drive.squared)
+            if self.pending_gear == LOW_GEAR or \
+                    abs(self.pending_differential_drive.y) <= \
+                    self.arcade_cutoff:
+                self.robot_drive.arcadeDrive(
+                    self.pending_differential_drive.y,
+                    -self.pending_differential_drive.rotation,
+                    squaredInputs=self.pending_differential_drive.squared)
+            elif self.pending_gear == HIGH_GEAR:
+                self.robot_drive.curvatureDrive(
+                    self.pending_differential_drive.y,
+                    -self.pending_differential_drive.rotation,
+                    isQuickTurn=self.pending_differential_drive.quick_turn)
+
             self.pending_differential_drive = None
             self.force_differential_drive = False
 

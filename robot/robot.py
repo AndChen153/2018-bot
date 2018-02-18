@@ -7,7 +7,7 @@ from components import bot, drivetrain, elevator, grabber, field, \
 from common import xbox_updater, util, rumbler
 from controllers import position_controller, angle_controller, \
     trajectory_controller, grabber_orienter_controller, \
-    grabber_auto_controller, cube_hunter_controller
+    grabber_auto_controller, cube_hunter_controller, hold_position_controller
 
 CONTROLLER_LEFT = wpilib.XboxController.Hand.kLeft
 CONTROLLER_RIGHT = wpilib.XboxController.Hand.kRight
@@ -31,6 +31,7 @@ class SpartaBot(magicbot.MagicRobot):
     grabber_auto_controller = grabber_auto_controller. \
         GrabberAutoController
     cube_hunter_controller = cube_hunter_controller.CubeHunterController
+    hold_position_controller = hold_position_controller.HoldPositionController
 
     def createObjects(self):
         # Drivetrain
@@ -101,7 +102,7 @@ class SpartaBot(magicbot.MagicRobot):
                 self.elevator.raise_to_switch()
             elif controller.getAButton():
                 self.elevator.lower_to_ground()
-            elif controller.getBButton():
+            elif controller.getBumper(CONTROLLER_RIGHT):
                 self.elevator.raise_to_carry()
 
             # Elevator free control
@@ -123,7 +124,7 @@ class SpartaBot(magicbot.MagicRobot):
                 self.grabber.intake()
             elif controller.getTriggerAxis(CONTROLLER_LEFT):
                 self.grabber.deposit()
-            elif controller.getBumper(CONTROLLER_RIGHT):
+            elif controller.getBButton():
                 self.grabber_orienter_controller.orient(
                     grabber_orienter_controller.GrabberOrienterSide.FLIPPY)
 
@@ -132,30 +133,34 @@ class SpartaBot(magicbot.MagicRobot):
             #     self.position_controller.move_to(36)
 
             # Cube hunter seeking
-            if controller.getStartButton() and not controller.getBackButton():
-                self.cube_hunter_controller.seek()
+            # if controller.getXButton():
+            #     self.cube_hunter_controller.seek()
 
             # Ramp deployment
-            if controller.getStartButton() and controller.getBackButton():
+            if controller.getStartButton() and controller.getBackButton() and \
+                    not self.ramp.is_released():
                 rumbler.rumble(controller, 1)
                 if not self.hold_start_time:
                     self.hold_start_time = wpilib.Timer.getFPGATimestamp()
                 elif wpilib.Timer.getFPGATimestamp() - self.hold_start_time \
                         > ramp.SAFETY_RELEASE_WAIT:
                     self.ramp.release()
+                    rumbler.rumble(controller, 0)
+                    self.hold_start_time = None
 
-            if controller.getStartButtonReleased() and \
-                    controller.getBackButtonReleased():
-                self.hold_start_time = None
-                rumbler.rumble(controller, 0)
-
-            # Ramp raising
-            # if self.ramp.is_released() and controller.getXButton():
-            if controller.getXButton():
+            # Ramp raising / lowering
+            if not controller.getBackButton() and controller.getStartButton():
                 self.ramp.raise_ramp()
-
-            if controller.getBackButton():
+            if controller.getBackButton() and not controller.getStartButton():
                 self.ramp.lower_ramp()
+
+            # Ramp hold position
+            if self.ramp.is_released() and not \
+                    (self.drive_controller.getStickButtonPressed(
+                        CONTROLLER_RIGHT) or
+                        self.drive_controller.getStickButtonPressed(
+                            CONTROLLER_LEFT)):
+                self.hold_position_controller.engage()
 
             # Compressor's a bitch
             # if controller.getBackButtonReleased() and not \

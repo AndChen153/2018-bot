@@ -3,9 +3,11 @@ from ctre import WPI_TalonSRX
 from wpilib import DoubleSolenoid
 from enum import IntEnum
 
+from controllers.hold_position_controller import HoldPositionController
+
 
 # Time in seconds to wait after buttons are held before deploying the ramps.
-SAFETY_RELEASE_WAIT = 1
+SAFETY_RELEASE_WAIT = 0.75
 
 
 class RampState(IntEnum):
@@ -23,6 +25,8 @@ class Ramp:
 
     solenoid = DoubleSolenoid
     motor = WPI_TalonSRX
+
+    hold_position_controller = HoldPositionController
 
     speed = tunable(1.0)
 
