@@ -2,7 +2,9 @@ from magicbot import tunable
 from ctre import WPI_TalonSRX
 from enum import IntEnum
 
-CUBE_CURRENT_CUTOFF = 7
+from components.bot import Bot, LedState
+
+CUBE_CURRENT_CUTOFF = 10
 
 
 class GrabberState(IntEnum):
@@ -20,13 +22,17 @@ class Grabber:
     left_motor = WPI_TalonSRX
     right_motor = WPI_TalonSRX
 
+    bot = Bot
+
     def setup(self):
         self.pending_state = GrabberState.DISABLED
         self.pending_independent_control = None
 
+        self._has_cube = False
+
         self.right_motor.setInverted(True)
 
-    def has_cube(self):
+    def has_cube_intake_current(self):
         return self.left_motor.getOutputCurrent() > CUBE_CURRENT_CUTOFF
 
     def intake(self):
@@ -71,10 +77,16 @@ class Grabber:
             self.left_motor.set(0)
         elif self.pending_state == GrabberState.INTAKING:
             self.left_motor.set(self.intake_speed)
+            self._has_cube = self.has_cube_intake_current()
         elif self.pending_state == GrabberState.DEPOSITING:
             self.left_motor.set(-self.deposit_speed)
+            self._has_cube = False
 
         self.pending_state = GrabberState.DISABLED
+
+        # Led update
+        self.bot.set_led_state(
+            LedState.GREEN if self._has_cube else LedState.RED)
 
     def on_disabled(self):
         self.left_motor.set(0)

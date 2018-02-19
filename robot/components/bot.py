@@ -5,6 +5,8 @@ from wpilib import Spark
 class LedState(float, Enum):
     RAINBOW = -0.89
     BREATH = 0.11
+    GREEN = 0.77
+    RED = 0.61
 
 
 class Bot:

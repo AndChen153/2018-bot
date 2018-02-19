@@ -11,8 +11,6 @@ from components.field import Field, SwitchState
 
 class ThreeCube(StatefulAutonomous):
 
-    DEFAULT = True
-
     ONE_CUBE_ONLY = False
     TWO_CUBE_ONLY = False
 
@@ -47,11 +45,12 @@ class ThreeCube(StatefulAutonomous):
     @timed_state(duration=1, next_state='go_down')
     def deposit(self):
         self.grabber.deposit()
-        if self.ONE_CUBE_ONLY:
-            self.done()
 
     @state
     def go_down(self):
+        if self.ONE_CUBE_ONLY:
+            self.done()
+            return
         self.elevator.lower_to_ground()
         self.trajectory_controller.reset()
         self.trajectory_controller.push(position=-59)
@@ -87,11 +86,12 @@ class ThreeCube(StatefulAutonomous):
     @timed_state(duration=1, next_state='go_down_for_third_cube')
     def deposit_second_cube(self):
         self.grabber.deposit()
-        if self.TWO_CUBE_ONLY:
-            self.done()
 
     @state
     def go_down_for_third_cube(self):
+        if self.TWO_CUBE_ONLY:
+            self.done()
+            return
         self.elevator.lower_to_ground()
         self.trajectory_controller.reset()
         self.trajectory_controller.push(position=-50)
@@ -131,3 +131,4 @@ class ThreeCube(StatefulAutonomous):
 
 class ThreeCubeReal(ThreeCube):
     MODE_NAME = 'Three Cube From Center'
+    DEFAULT = False

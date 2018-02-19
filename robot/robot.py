@@ -57,7 +57,7 @@ class SpartaBot(magicbot.MagicRobot):
 
         # Controllers
         self.drive_controller = wpilib.XboxController(0)
-        self.operator_controller = wpilib.XboxController(1)
+        # self.operator_controller = wpilib.XboxController(1)
 
         # Compressor
         self.compressor = wpilib.Compressor()
@@ -66,8 +66,8 @@ class SpartaBot(magicbot.MagicRobot):
         self.led_driver = wpilib.Spark(0)
 
         # Initialize dashboard
-        xbox_updater.push(self.drive_controller, 'driver')
-        xbox_updater.push(self.operator_controller, 'operator')
+        # xbox_updater.push(self.drive_controller, 'driver')
+        # xbox_updater.push(self.operator_controller, 'operator')
 
         # Navx
         self.navx = navx.AHRS.create_spi()
@@ -95,15 +95,18 @@ class SpartaBot(magicbot.MagicRobot):
 
         # Mirror elevator control & grabber control to both drive and
         # operator controllers to allow for driveteam flexibility.
-        for controller in [self.drive_controller, self.operator_controller]:
+        for controller in [self.drive_controller]:  # self.operator_controller]
 
             # Elevator position control
             if controller.getYButton():
                 self.elevator.raise_to_switch()
             elif controller.getAButton():
                 self.elevator.lower_to_ground()
-            elif controller.getBumper(CONTROLLER_RIGHT):
+            elif controller.getBButton():
                 self.elevator.raise_to_carry()
+
+            if controller.getBumperReleased(CONTROLLER_RIGHT):
+                self.elevator.toggle_carry_ground()
 
             # Elevator free control
             controller_pov = controller.getPOV(pov=0)
@@ -124,7 +127,7 @@ class SpartaBot(magicbot.MagicRobot):
                 self.grabber.intake()
             elif controller.getTriggerAxis(CONTROLLER_LEFT):
                 self.grabber.deposit()
-            elif controller.getBButton():
+            elif controller.getXButton():
                 self.grabber_orienter_controller.orient(
                     grabber_orienter_controller.GrabberOrienterSide.FLIPPY)
 
@@ -171,13 +174,13 @@ class SpartaBot(magicbot.MagicRobot):
             #         self.compressor.start()
 
         # Pass inputs to dashboard
-        xbox_updater.push(self.drive_controller, 'driver')
-        xbox_updater.push(self.operator_controller, 'operator')
+        # xbox_updater.push(self.drive_controller, 'driver')
+        # xbox_updater.push(self.operator_controller, 'operator')
 
     def disabledPeriodic(self):
         # Pass inputs to dashboard
-        xbox_updater.push(self.drive_controller, 'driver')
-        xbox_updater.push(self.operator_controller, 'operator')
+        # xbox_updater.push(self.drive_controller, 'driver')
+        # xbox_updater.push(self.operator_controller, 'operator')
 
         # Lock ramps
         self.ramp.lock()

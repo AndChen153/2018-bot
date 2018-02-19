@@ -90,6 +90,12 @@ class Elevator:
     def lower_to_ground(self):
         self.pending_position = ElevatorPosition.GROUND
 
+    def toggle_carry_ground(self):
+        if self.pending_position == ElevatorPosition.GROUND:
+            self.pending_position = ElevatorPosition.CARRYING
+        else:
+            self.pending_position = ElevatorPosition.GROUND
+
     def move_incremental(self, amount):
         '''
         Move `amount` inches.
