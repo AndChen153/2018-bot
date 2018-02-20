@@ -34,7 +34,10 @@ class Grabber:
         self.right_motor.setInverted(True)
 
     def has_cube_intake_current(self):
-        return self.left_motor.getOutputCurrent() > CUBE_CURRENT_CUTOFF
+        try:
+            return self.left_motor.getOutputCurrent() > CUBE_CURRENT_CUTOFF
+        except NotImplementedError:
+            return False
 
     def intake(self):
         self.pending_state = GrabberState.INTAKING
@@ -89,3 +92,11 @@ class Grabber:
 
     def on_disabled(self):
         self.left_motor.set(0)
+
+    def get_state(self):
+        return {
+            'pending_state': self.pending_state
+        }
+
+    def put_state(self, state):
+        self.pending_state = state['pending_state']

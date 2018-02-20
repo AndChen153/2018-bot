@@ -181,3 +181,11 @@ class Elevator:
             except NotImplementedError:
                 # Simulator doesn't implement getError
                 pass
+
+    def get_state(self):
+        return {
+            'pending_position': self.pending_position
+        }
+
+    def put_state(self, state):
+        self.pending_position = state['pending_position']

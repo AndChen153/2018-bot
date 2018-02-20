@@ -3,11 +3,12 @@ import wpilib
 import ctre
 from robotpy_ext.common_drivers import navx
 from components import bot, drivetrain, elevator, grabber, field, \
-    targeting, ramp
+    targeting, ramp, macros
 from common import xbox_updater, util, rumbler
 from controllers import position_controller, angle_controller, \
     trajectory_controller, grabber_orienter_controller, \
-    grabber_auto_controller, cube_hunter_controller, hold_position_controller
+    grabber_auto_controller, cube_hunter_controller, \
+    hold_position_controller, macro_controller
 
 CONTROLLER_LEFT = wpilib.XboxController.Hand.kLeft
 CONTROLLER_RIGHT = wpilib.XboxController.Hand.kRight
@@ -15,6 +16,12 @@ CONTROLLER_RIGHT = wpilib.XboxController.Hand.kRight
 
 class SpartaBot(magicbot.MagicRobot):
 
+    # Macro controller - load before all other components to ensure
+    # time to inject / poll before execute() method called.
+    # Components are loaded alphabetically, so...
+    aaa_macro_controller = macro_controller.MacroController
+
+    macros = macros.Macros
     bot = bot.Bot
     drivetrain = drivetrain.Drivetrain
     elevator = elevator.Elevator
@@ -72,6 +79,10 @@ class SpartaBot(magicbot.MagicRobot):
         # Navx
         self.navx = navx.AHRS.create_spi()
 
+        # Macros
+        self._is_recording_macro = False
+        self._is_playing_macro = False
+
     def teleopInit(self):
         self.elevator.release_lock()
         self.drivetrain.reset_angle_correction()
@@ -115,12 +126,6 @@ class SpartaBot(magicbot.MagicRobot):
                 self.elevator.raise_freely()
             elif controller_pov == 180:
                 self.elevator.lower_freely()
-
-            # Elevator incremental control
-            if controller_pov == 90:
-                self.elevator.move_incremental(1)
-            elif controller_pov == 270:
-                self.elevator.move_incremental(-1)
 
             # Grabber - right trigger for full intake, right bumper for flippy,
             # left trigger to deposit cube.
@@ -173,6 +178,16 @@ class SpartaBot(magicbot.MagicRobot):
             #         self.compressor.stop()
             #     else:
             #         self.compressor.start()
+
+            if controller.getXButtonReleased():
+                self._is_recording_macro = not self._is_recording_macro
+            if self._is_recording_macro:
+                self.aaa_macro_controller.record()
+
+            # if controller.getBButtonReleased():
+            #     self._is_playing_macro = not self._is_playing_macro
+            # if self._is_playing_macro:
+            #     self.aaa_macro_controller.play()
 
         # Pass inputs to dashboard
         # xbox_updater.push(self.drive_controller, 'driver')

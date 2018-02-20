@@ -157,3 +157,14 @@ class Drivetrain:
 
     def on_disabled(self):
         self.robot_drive.drive(0, 0)
+
+    def get_state(self):
+        return {
+            'pending_gear': self.pending_gear,
+            'pending_differential_drive': self.pending_differential_drive
+        }
+
+    def put_state(self, state):
+        self.pending_gear = state['pending_gear']
+        self.pending_differential_drive = DifferentialDriveConfig._make(
+            state['pending_differential_drive'])
