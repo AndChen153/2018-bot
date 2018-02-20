@@ -17,7 +17,7 @@ class AngleController(BasePIDComponent):
     # kD = tunable(0.0005)
     # kF = tunable(0.0)
 
-    kP = tunable(0.08)
+    kP = tunable(0.1)
     kI = tunable(0)
     kD = tunable(0)
     kF = tunable(0)

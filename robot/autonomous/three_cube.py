@@ -58,7 +58,7 @@ class ThreeCube(StatefulAutonomous):
         self.trajectory_controller.reset()
         self.trajectory_controller.push(position=-59)
         self.trajectory_controller.push(rotate=-35 * self.sign)
-        self.trajectory_controller.push(position=45, timeout=3)
+        self.trajectory_controller.push(position=40, timeout=3)
         self.next_state('lower')
 
     @state
