@@ -27,6 +27,7 @@ class Grabber:
     def setup(self):
         self.pending_state = GrabberState.DISABLED
         self.pending_independent_control = None
+        self.independent_control_priority = None
 
         self._has_cube = False
 
@@ -50,8 +51,6 @@ class Grabber:
         self.independent_control_priority = priority
 
     def execute(self):
-        # print('output_current', self.left_motor.getOutputCurrent())
-
         # Independent motor control - bypass all the normal controls
         if self.pending_independent_control:
 

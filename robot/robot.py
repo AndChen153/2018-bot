@@ -77,6 +77,7 @@ class SpartaBot(magicbot.MagicRobot):
         self.drivetrain.reset_angle_correction()
         self.position_controller.reset_position_and_heading()
         self.trajectory_controller.reset()
+        self.grabber_auto_controller.enable()
 
     def teleopPeriodic(self):
         # Drive with controller

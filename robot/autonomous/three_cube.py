@@ -3,6 +3,7 @@ from robotpy_ext.autonomous import StatefulAutonomous, state, timed_state
 from controllers.angle_controller import AngleController
 from controllers.trajectory_controller import TrajectoryController
 from controllers.cube_hunter_controller import CubeHunterController
+from controllers.grabber_auto_controller import GrabberAutoController
 from components.drivetrain import Drivetrain
 from components.elevator import Elevator, ElevatorPosition
 from components.grabber import Grabber
@@ -21,12 +22,14 @@ class ThreeCube(StatefulAutonomous):
     grabber = Grabber
     field = Field
     cube_hunter_controller = CubeHunterController
+    grabber_auto_controller = GrabberAutoController
 
     @state(first=True)
     def prepare_to_start(self):
         self.elevator.release_lock()
         self.elevator.raise_to_switch()
         self.trajectory_controller.reset()
+        self.grabber_auto_controller.disable()
         switch_side = self.field.get_switch_side()
         if switch_side:
             self.sign = 1 if switch_side == SwitchState.RIGHT else -1
@@ -54,17 +57,18 @@ class ThreeCube(StatefulAutonomous):
         self.elevator.lower_to_ground()
         self.trajectory_controller.reset()
         self.trajectory_controller.push(position=-59)
-        self.trajectory_controller.push(rotate=-43 * self.sign)
-        self.trajectory_controller.push(position=40, timeout=4)
+        self.trajectory_controller.push(rotate=-35 * self.sign)
+        self.trajectory_controller.push(position=45, timeout=3)
         self.next_state('lower')
 
     @state
     def lower(self):
-        if self.trajectory_controller.is_finished() and \
-                self.elevator.is_at_position(ElevatorPosition.GROUND):
-            self.next_state('intake_second_cube')
+        if self.elevator.is_at_position(ElevatorPosition.GROUND):
+            self.grabber.intake()
+            if self.trajectory_controller.is_finished():
+                self.next_state('intake_second_cube')
 
-    @timed_state(duration=1, next_state='rotate_back')
+    @timed_state(duration=0.25, next_state='rotate_back')
     def intake_second_cube(self):
         self.grabber.intake()
 
@@ -72,8 +76,8 @@ class ThreeCube(StatefulAutonomous):
     def rotate_back(self):
         self.elevator.raise_to_switch()
         self.trajectory_controller.reset()
-        self.trajectory_controller.push(position=-40)
-        self.trajectory_controller.push(rotate=43 * self.sign)
+        self.trajectory_controller.push(position=-45)
+        self.trajectory_controller.push(rotate=35 * self.sign)
         self.trajectory_controller.push(position=67, timeout=4)
         self.next_state('execute_move_trajectory')
 
@@ -101,11 +105,12 @@ class ThreeCube(StatefulAutonomous):
 
     @state
     def lower_for_third_cube(self):
-        if self.trajectory_controller.is_finished() and \
-                self.elevator.is_at_position(ElevatorPosition.GROUND):
-            self.next_state('intake_third_cube')
+        if self.elevator.is_at_position(ElevatorPosition.GROUND):
+            self.grabber.intake()
+            if self.trajectory_controller.is_finished():
+                self.next_state('intake_third_cube')
 
-    @timed_state(duration=1, next_state='rotate_back_from_third')
+    @timed_state(duration=0.5, next_state='rotate_back_from_third')
     def intake_third_cube(self):
         self.grabber.intake()
 

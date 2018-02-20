@@ -12,7 +12,19 @@ class GrabberAutoController:
     targeting = targeting.Targeting
     elevator = elevator.Elevator
 
+    def setup(self):
+        self.disabled = False
+
+    def disable(self):
+        self.disabled = True
+
+    def enable(self):
+        self.disabled = False
+
     def execute(self):
+        if self.disabled:
+            return
+
         data = self.targeting.get_data()
         if self.elevator.is_at_ground() and data.found and data.y >= Y_CUTOFF:
             self.grabber_orienter_controller.orient(
