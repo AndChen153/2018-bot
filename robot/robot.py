@@ -4,11 +4,11 @@ import ctre
 from robotpy_ext.common_drivers import navx
 from components import bot, drivetrain, elevator, grabber, field, \
     targeting, ramp, macros
-from common import xbox_updater, util, rumbler
+from common import util, rumbler
 from controllers import position_controller, angle_controller, \
     trajectory_controller, grabber_orienter_controller, \
     grabber_auto_controller, cube_hunter_controller, \
-    hold_position_controller, macro_controller
+    hold_position_controller, macro_controller, path_controller
 
 CONTROLLER_LEFT = wpilib.XboxController.Hand.kLeft
 CONTROLLER_RIGHT = wpilib.XboxController.Hand.kRight
@@ -39,6 +39,7 @@ class SpartaBot(magicbot.MagicRobot):
         GrabberAutoController
     cube_hunter_controller = cube_hunter_controller.CubeHunterController
     hold_position_controller = hold_position_controller.HoldPositionController
+    path_controller = path_controller.PathController
 
     def createObjects(self):
         # Drivetrain

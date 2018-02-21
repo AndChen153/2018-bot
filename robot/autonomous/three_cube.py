@@ -31,13 +31,13 @@ class ThreeCube(StatefulAutonomous):
         self.trajectory_controller.reset()
         self.grabber_auto_controller.disable()
         switch_side = self.field.get_switch_side()
-        if switch_side:
+        if switch_side is not None:
             self.sign = 1 if switch_side == SwitchState.RIGHT else -1
-            # self.trajectory_controller.push(position=15)
+            self.trajectory_controller.push(position=5)
             self.trajectory_controller.push(rotate=35 * self.sign)
             self.trajectory_controller.push(position=100)
             self.trajectory_controller.push(rotate=-35 * self.sign)
-            self.trajectory_controller.push(position=10, timeout=0.5)
+            self.trajectory_controller.push(position=20, timeout=0.5)
             self.next_state('execute_trajectory')
 
     @state

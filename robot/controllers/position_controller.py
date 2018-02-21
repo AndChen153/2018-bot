@@ -30,7 +30,7 @@ class PositionController(BasePIDComponent):
 
     def __init__(self):
         super().__init__(self.get_position, 'position_controller')
-        self.set_abs_output_range(0.14, 1)
+        self.set_abs_output_range(0.14, 0.7)
 
         # Angle correction PID controller - used to maintain a straight
         # heading while the encoders track distance traveled.

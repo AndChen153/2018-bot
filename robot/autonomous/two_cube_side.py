@@ -23,6 +23,8 @@ class TwoCubeSide(StatefulAutonomous):
 
     @state(first=True)
     def prepare_to_start(self):
+        self.end_after_trajectory = False
+
         self.elevator.release_lock()
         self.elevator.raise_to_switch()
         self.trajectory_controller.reset()
@@ -30,32 +32,46 @@ class TwoCubeSide(StatefulAutonomous):
         if switch_side is not None:
             self.sign = 1 if self.start_side == SwitchState.LEFT else -1
             if switch_side == self.start_side:
-                self.trajectory_controller.push(position=228)
-                self.trajectory_controller.push(rotate=90 * self.sign)
-                self.trajectory_controller.push(position=60)
-                self.trajectory_controller.push(rotate=90 * self.sign)
-                self.trajectory_controller.push(position=10, timeout=3)
+                if self.ONE_CUBE_ONLY:
+                    self.trajectory_controller.push(position=158)
+                    self.trajectory_controller.push(rotate=90 * self.sign)
+                    self.trajectory_controller.push(position=20, timeout=0.5)
+                else:
+                    self.trajectory_controller.push(position=228)
+                    self.trajectory_controller.push(rotate=90 * self.sign)
+                    self.trajectory_controller.push(position=60)
+                    self.trajectory_controller.push(rotate=90 * self.sign)
+                    self.trajectory_controller.push(position=20, timeout=0.5)
             else:
-                self.trajectory_controller.push(position=228)
-                self.trajectory_controller.push(rotate=90 * self.sign)
-                self.trajectory_controller.push(position=175)
-                self.trajectory_controller.push(rotate=90 * self.sign)
-                self.trajectory_controller.push(position=10, timeout=3)
+                self.elevator.lower_to_ground()
+                self.trajectory_controller.push(position=130)
+                self.trajectory_controller.push(rotate=180 * self.sign)
+                self.trajectory_controller.push(position=60)
+                self.end_after_trajectory = True
+                # self.trajectory_controller.push(position=228)
+                # self.trajectory_controller.push(rotate=90 * self.sign)
+                # self.trajectory_controller.push(position=175)
+                # self.trajectory_controller.push(rotate=90 * self.sign)
+                # self.trajectory_controller.push(position=20, timeout=0.5)
             self.next_state('execute_trajectory')
 
     @state
     def execute_trajectory(self):
         if self.trajectory_controller.is_finished():
-            self.next_state('deposit')
+            if self.end_after_trajectory:
+                self.done()
+            else:
+                self.next_state('deposit')
 
     @timed_state(duration=3, next_state='back_up_to_hunt')
     def deposit(self):
         self.grabber.deposit()
-        if self.ONE_CUBE_ONLY:
-            self.done()
 
     @state
     def back_up_to_hunt(self):
+        if self.ONE_CUBE_ONLY:
+            self.done()
+            return
         self.trajectory_controller.push(position=-20)
         self.trajectory_controller.push(position=45 * self.sign)
         self.trajectory_controller.push(position=10)

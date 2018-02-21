@@ -18,6 +18,9 @@ LOW_GEAR = True
 
 UNITS_PER_REV = 4096
 DISTANCE_PER_REV = (2 * math.pi * 3) / (3 / 1) / (54 / 30)
+DISTANCE_PER_REV_METERS = (2 * math.pi * 0.0762) / (3 / 1) / (54 / 30)
+
+DEADBAND = 0.05
 
 
 class Drivetrain:
@@ -46,6 +49,8 @@ class Drivetrain:
         self.pending_position = None
         self.pending_reset = False
         self.og_yaw = None
+        self.pending_manual_drive = None
+        self.is_manual_mode = False
 
         # Set encoders
         self.left_motor_master.configSelectedFeedbackSensor(
@@ -64,9 +69,11 @@ class Drivetrain:
         self.robot_drive = DifferentialDrive(self.left_motor_master,
                                              self.right_motor_master)
         self.robot_drive.setDeadband(0)
+        self.robot_drive.setSafetyEnabled(False)
 
     def reset_position(self):
-        self.pending_reset = True
+        self.left_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)
+        self.right_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)
 
     def get_position(self):
         '''
@@ -76,6 +83,9 @@ class Drivetrain:
         right_position = self.right_motor_master.getQuadraturePosition()
         return (((left_position + right_position) / 2) *
                 (1 / UNITS_PER_REV) * DISTANCE_PER_REV)
+
+    def drive(self, *args):
+        self.differential_drive(*args)
 
     def differential_drive(self, y, rotation=0, squared=True, force=False,
                            quick_turn=False):
@@ -127,12 +137,47 @@ class Drivetrain:
         else:
             self.pending_gear = HIGH_GEAR
 
+    def manual_drive(self, left, right):
+        self.pending_manual_drive = [left, right]
+
+    def get_left_encoder(self):
+        return -self.left_motor_master.getQuadraturePosition()
+
+    def get_right_encoder(self):
+        return self.right_motor_master.getQuadraturePosition()
+
+    def get_left_encoder_meters(self):
+        return self.get_left_encoder() * \
+            (1 / UNITS_PER_REV) * DISTANCE_PER_REV_METERS
+
+    def get_right_encoder_meters(self):
+        return self.get_right_encoder() * \
+            (1 / UNITS_PER_REV) * DISTANCE_PER_REV_METERS
+
+    def set_manual_mode(self, is_manual):
+        self.is_manual_mode = is_manual
+
     def execute(self):
+        # print(self.get_left_encoder_meters(), self.get_right_encoder_meters())
         # Reset position
-        if self.pending_reset:
-            self.left_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)
-            self.right_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)
-            self.pending_reset = False
+        # if self.pending_reset:
+        #     self.left_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)
+        #     self.right_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)
+        #     self.pending_reset = False
+
+        # Shifter
+        self.shifter_solenoid.set(self.pending_gear)
+
+        # Manual
+        if self.is_manual_mode:
+            if self.pending_manual_drive:
+                left, right = self.pending_manual_drive
+                left = self.robot_drive.applyDeadband(left, DEADBAND)
+                right = self.robot_drive.applyDeadband(right, DEADBAND)
+                self.left_motor_master.set(-left)
+                self.right_motor_master.set(right)
+                self.pending_manual_drive = None
+            return
 
         # Drive
         if self.pending_differential_drive:
@@ -152,11 +197,8 @@ class Drivetrain:
             self.pending_differential_drive = None
             self.force_differential_drive = False
 
-        # Shifter
-        self.shifter_solenoid.set(self.pending_gear)
-
-    def on_disabled(self):
-        self.robot_drive.drive(0, 0)
+    def on_disable(self):
+        self.robot_drive.arcadeDrive(0, 0)
 
     def get_state(self):
         return {

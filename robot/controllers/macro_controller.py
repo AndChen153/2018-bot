@@ -4,7 +4,7 @@ import datetime
 from enum import IntEnum
 from os import path
 
-from magicbot import StateMachine, state, tunable
+from magicbot import StateMachine, state
 from wpilib import Timer
 
 from components import macros
@@ -19,11 +19,12 @@ class MacroMode(IntEnum):
 class MacroController(StateMachine):
 
     macros = macros.Macros
-    current_macro = tunable('')
 
     def setup(self):
         self.mode = MacroMode.DISABLED
         self.f = None
+        self.current_macro = None
+        self.prev_step = None
 
     def is_active(self):
         return self.is_executing
@@ -34,10 +35,12 @@ class MacroController(StateMachine):
             self.current_macro = macro_name
         self.engage()
 
-    def record(self):
+    def record(self, macro_name=None):
         self.mode = MacroMode.RECORDING
-        if self.current_macro == '':
-            self.current_macro = datetime.datetime.now().isoformat()  # Name
+        if not self.current_macro:
+            self.current_macro = macro_name or \
+                datetime.datetime.now().isoformat()
+        # print('recording', self.current_macro)
         self.engage()
 
     @state(first=True)
@@ -78,6 +81,9 @@ class MacroController(StateMachine):
             if Timer.getFPGATimestamp() - self.start_time >= time:
                 self.macros.put_component_states(step)
                 self.current_macro_steps.pop(0)
+                self.prev_step = step
+            elif self.prev_step:
+                self.macros.put_component_states(self.prev_step)
         else:
             self.done()
 

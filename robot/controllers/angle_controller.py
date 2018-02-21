@@ -31,7 +31,7 @@ class AngleController(BasePIDComponent):
 
         self.last_angle = 0
 
-        self.set_abs_output_range(0.13, 0.3)
+        self.set_abs_output_range(0.13, 0.25)
 
         if hasattr(self, 'pid'):
             self.pid.setInputRange(-180.0, 180.0)
