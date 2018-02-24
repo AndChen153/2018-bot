@@ -6,7 +6,7 @@ import pickle
 
 import pathfinder as pf
 
-WHEELBASE_WIDTH = 0.7619995885
+WHEELBASE_WIDTH = 0.7619995885  # meters
 
 TRAJECTORIES = {
     'center_right': [
@@ -39,10 +39,13 @@ if __name__ == '__main__':
         info, trajectory = pf.generate(points, pf.FIT_HERMITE_CUBIC,
                                        pf.SAMPLES_HIGH, 0.05, 3.66, 0.5, 60.0)
 
-        modifier = pf.modifiers.TankModifier(trajectory).modify(WHEELBASE_WIDTH)
+        modifier = pf.modifiers.TankModifier(
+            trajectory).modify(WHEELBASE_WIDTH)
 
         print(info)
 
-        pickle.dump(modifier.getLeftTrajectory(), open(sys.argv[1] + '/' + key + '-l', 'wb'))
-        pickle.dump(modifier.getRightTrajectory(), open(sys.argv[1] + '/' + key + '-r', 'wb'))
+        pickle.dump(modifier.getLeftTrajectory(), open(
+            sys.argv[1] + '/' + key + '-l', 'wb'))
+        pickle.dump(modifier.getRightTrajectory(), open(
+            sys.argv[1] + '/' + key + '-r', 'wb'))
         pf.serialize_csv(sys.argv[1] + '/' + key + '.csv', trajectory)

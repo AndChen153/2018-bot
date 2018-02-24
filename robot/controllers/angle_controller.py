@@ -12,11 +12,6 @@ class AngleController(BasePIDComponent):
 
     drivetrain = Drivetrain
 
-    # kP = tunable(0.002)
-    # kI = tunable(0.00002)
-    # kD = tunable(0.0005)
-    # kF = tunable(0.0)
-
     kP = tunable(0.1)
     kI = tunable(0)
     kD = tunable(0)

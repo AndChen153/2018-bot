@@ -158,12 +158,8 @@ class Drivetrain:
         self.is_manual_mode = is_manual
 
     def execute(self):
-        # print(self.get_left_encoder_meters(), self.get_right_encoder_meters())
-        # Reset position
-        # if self.pending_reset:
-        #     self.left_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)
-        #     self.right_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)
-        #     self.pending_reset = False
+        # print('dist_traveled_meters', self.get_left_encoder_meters(),
+        #       self.get_right_encoder_meters())
 
         # Shifter
         self.shifter_solenoid.set(self.pending_gear)

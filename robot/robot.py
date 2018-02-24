@@ -73,10 +73,6 @@ class SpartaBot(magicbot.MagicRobot):
         # LEDs
         self.led_driver = wpilib.Spark(0)
 
-        # Initialize dashboard
-        # xbox_updater.push(self.drive_controller, 'driver')
-        # xbox_updater.push(self.operator_controller, 'operator')
-
         # Navx
         self.navx = navx.AHRS.create_spi()
 
@@ -138,14 +134,6 @@ class SpartaBot(magicbot.MagicRobot):
                 self.grabber_orienter_controller.orient(
                     grabber_orienter_controller.GrabberOrienterSide.FLIPPY)
 
-            # # Position testing
-            # if controller.getBButton():
-            #     self.position_controller.move_to(36)
-
-            # Cube hunter seeking
-            # if controller.getXButton():
-            #     self.cube_hunter_controller.seek()
-
             # Ramp deployment
             if controller.getStartButton() and controller.getBackButton() and \
                     not self.ramp.is_released():
@@ -180,25 +168,7 @@ class SpartaBot(magicbot.MagicRobot):
             #     else:
             #         self.compressor.start()
 
-            if controller.getXButtonReleased():
-                self._is_recording_macro = not self._is_recording_macro
-            if self._is_recording_macro:
-                self.aaa_macro_controller.record()
-
-            # if controller.getBButtonReleased():
-            #     self._is_playing_macro = not self._is_playing_macro
-            # if self._is_playing_macro:
-            #     self.aaa_macro_controller.play()
-
-        # Pass inputs to dashboard
-        # xbox_updater.push(self.drive_controller, 'driver')
-        # xbox_updater.push(self.operator_controller, 'operator')
-
     def disabledPeriodic(self):
-        # Pass inputs to dashboard
-        # xbox_updater.push(self.drive_controller, 'driver')
-        # xbox_updater.push(self.operator_controller, 'operator')
-
         # Lock ramps
         self.ramp.lock()
 

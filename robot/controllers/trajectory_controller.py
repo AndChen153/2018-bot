@@ -1,16 +1,17 @@
 from wpilib import Timer
 
 from collections import namedtuple
-from controllers import position_controller, angle_controller
+from controllers import position_controller, angle_controller, path_controller
 
 TrajectoryAction = namedtuple('TrajectoryAction',
-                              ['rotate', 'position', 'timeout'])
+                              ['rotate', 'position', 'path', 'timeout'])
 
 
 class TrajectoryController:
 
     position_controller = position_controller.PositionController
     angle_controller = angle_controller.AngleController
+    path_controller = path_controller.PathController
 
     def __init__(self):
         self.actions = []
@@ -18,9 +19,9 @@ class TrajectoryController:
         self.has_reset = False
         self.timeout_start = None
 
-    def push(self, rotate=None, position=None, timeout=None):
+    def push(self, rotate=None, position=None, path=None, timeout=None):
         self.actions.append(TrajectoryAction(rotate=rotate, position=position,
-                                             timeout=timeout))
+                                             path=path, timeout=timeout))
 
     def reset(self):
         self.actions = []
@@ -40,6 +41,7 @@ class TrajectoryController:
             else:
                 self.position_controller.stop()
                 self.angle_controller.stop()
+                self.path_controller.stop()
 
         if self.current_action:
             if self.current_action.rotate:
@@ -59,6 +61,15 @@ class TrajectoryController:
                     self.position_controller.move_to(
                         self.current_action.position)
                     if self.position_controller.is_at_location():
+                        self.current_action = None
+
+            elif self.current_action.path:
+                if not self.has_reset:
+                    self.path_controller.set(self.current_action.path)
+                    self.has_reset = True
+                else:
+                    self.path_controller.run()
+                    if self.path_controller.is_finished():
                         self.current_action = None
 
             if self.current_action and self.current_action.timeout:

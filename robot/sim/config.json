@@ -1,0 +1,27 @@
+{
+  "pyfrc": {
+    "robot": {
+      "w": 2.91,
+      "h": 3.33,
+      "start_positions": [
+        {"x": 2, "y": 23, "angle": 0, "name": "lower"},
+        {"x": 2, "y": 13.875, "angle": 0, "name": "middle"},
+        {"x": 2, "y": 4.75, "angle": 0, "name": "top"}
+      ]
+    },
+    "CAN": {
+      "4": "Left Drive Master",
+      "3": "Left Drive Slave",
+      "5": "Right Drive Master",
+      "6": "Right Drive Slave",
+      "15": "Shooter Motor"
+    },
+    "solenoid": {
+      "0": "Shifter",
+      "1": "Elevator Brake Reverse",
+      "2": "Elevator Brake Forward",
+      "3": "Ramp Lock Reverse",
+      "4": "Ramp Lock Forward"
+    }
+  }
+}

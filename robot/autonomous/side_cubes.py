@@ -8,7 +8,7 @@ from components.grabber import Grabber
 from components.field import Field, SwitchState
 
 
-class TwoCubeSide(StatefulAutonomous):
+class SideAutonomous(StatefulAutonomous):
 
     DEFAULT = False
     ONE_CUBE_ONLY = False
@@ -48,11 +48,6 @@ class TwoCubeSide(StatefulAutonomous):
                 self.trajectory_controller.push(rotate=180 * self.sign)
                 self.trajectory_controller.push(position=60)
                 self.end_after_trajectory = True
-                # self.trajectory_controller.push(position=228)
-                # self.trajectory_controller.push(rotate=90 * self.sign)
-                # self.trajectory_controller.push(position=175)
-                # self.trajectory_controller.push(rotate=90 * self.sign)
-                # self.trajectory_controller.push(position=20, timeout=0.5)
             self.next_state('execute_trajectory')
 
     @state
@@ -63,7 +58,7 @@ class TwoCubeSide(StatefulAutonomous):
             else:
                 self.next_state('deposit')
 
-    @timed_state(duration=3, next_state='back_up_to_hunt')
+    @timed_state(duration=0.75, next_state='back_up_to_hunt')
     def deposit(self):
         self.grabber.deposit()
 
@@ -92,7 +87,7 @@ class TwoCubeSide(StatefulAutonomous):
         self.elevator.raise_to_switch()
         self.trajectory_controller.push(position=-10)
         self.trajectory_controller.push(position=-45 * self.sign)
-        self.trajectory_controller.push(position=10, timeout=2)
+        self.trajectory_controller.push(position=10, timeout=0.5)
         if self.trajectory_controller.is_finished() and \
                 self.elevator.is_at_position(ElevatorPosition.SWITCH):
             self.next_state('execute_move_trajectory')
@@ -107,13 +102,25 @@ class TwoCubeSide(StatefulAutonomous):
         self.grabber.deposit()
 
 
-class TwoCubeLeft(TwoCubeSide):
+class TwoCubeLeft(SideAutonomous):
 
-    MODE_NAME = 'Two Cube From Left'
+    MODE_NAME = 'Left - Two Cubes'
     start_side = SwitchState.LEFT
 
 
-class TwoCubeRight(TwoCubeSide):
+class TwoCubeRight(SideAutonomous):
 
-    MODE_NAME = 'Two Cube From Right'
+    MODE_NAME = 'Right - Two Cubes'
+    start_side = SwitchState.RIGHT
+
+
+class OneCubeLeft(SideAutonomous):
+
+    MODE_NAME = 'Left - One Cube'
+    start_side = SwitchState.LEFT
+
+
+class OneCubeRight(SideAutonomous):
+
+    MODE_NAME = 'Right - One Cube'
     start_side = SwitchState.RIGHT

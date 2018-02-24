@@ -1,6 +1,7 @@
 from os import path
 import pickle
 
+import hal
 from magicbot import StateMachine, state
 import pathfinder as pf
 from pathfinder.followers import DistanceFollower
@@ -8,7 +9,12 @@ from pathfinder.followers import DistanceFollower
 from components import drivetrain
 from controllers import angle_controller
 
+if hal.HALIsSimulation():
+    import pyfrc
+
 MAX_VELOCITY = 3.66
+CONV_Y = 2.5
+CONV_X = 5.5
 
 
 class PathController(StateMachine):
@@ -23,19 +29,18 @@ class PathController(StateMachine):
         self.left = DistanceFollower([])
         self.right = DistanceFollower([])
 
-        # The first argument is the proportional gain. Usually this will be quite high
-        # The second argument is the integral gain. This is unused for motion profiling
-        # The third argument is the derivative gain. Tweak this if you are unhappy with the tracking of the trajectory
-        # The fourth argument is the velocity ratio. This is 1 over the maximum velocity you provided in the
-        #      trajectory configuration (it translates m/s to a -1 to 1 scale that your motors can read)
-        # The fifth argument is your acceleration gain. Tweak this if you want to get to a higher or lower speed quicker
+        # Argument format:
+        # - P gain
+        # - Integral gain (0)
+        # - Derivative gain (tracking)
+        # - Velocity ratio (1/max velo in trajectory config)
+        # - Accel gain
         self.left.configurePIDVA(1, 0.0, 0.0, 1 / MAX_VELOCITY, 0)
         self.right.configurePIDVA(1, 0.0, 0.0, 1 / MAX_VELOCITY, 0)
 
     def set(self, _path):
         self.path = _path
         self.finished = False
-        print('set path', _path)
 
     def is_finished(self):
         return self.finished
@@ -55,35 +60,54 @@ class PathController(StateMachine):
         left_traj = pickle.load(open(traj_path + '-l', 'rb'))
         right_traj = pickle.load(open(traj_path + '-r', 'rb'))
 
+        self.left.reset()
+        self.right.reset()
         self.left.setTrajectory(left_traj)
         self.right.setTrajectory(right_traj)
+
+        if hal.HALIsSimulation():
+            renderer = pyfrc.sim.get_user_renderer()
+            if renderer:
+                renderer.draw_pathfinder_trajectory(
+                    left_traj, color='blue')
+                renderer.draw_pathfinder_trajectory(
+                    right_traj, color='pink')
+
+                # renderer.draw_pathfinder_trajectory(
+                #     left_traj, scale=(CONV_X, -CONV_Y), offset=(-1.5, -0.5))
+                # renderer.draw_pathfinder_trajectory(
+                #     right_traj, scale=(4, -4))
 
         self.next_state('exec_path')
 
     @state
     def exec_path(self):
-        print('current pos', self.drivetrain.get_left_encoder_meters(), self.drivetrain.get_right_encoder_meters())
+        print('[path controller] [current] L: %s; R: %s' %
+              (self.drivetrain.get_left_encoder_meters(),
+               self.drivetrain.get_right_encoder_meters()))
+
         try:
-            l_o = self.left.calculate(self.drivetrain.get_left_encoder_meters())
-            r_o = self.right.calculate(self.drivetrain.get_right_encoder_meters())
+            l_o = self.left.calculate(
+                self.drivetrain.get_left_encoder_meters())
+            r_o = self.right.calculate(
+                self.drivetrain.get_right_encoder_meters())
         except Exception:
             return
-        print(l_o, r_o)
+
+        print('[path controller] [calculated] L: %s; R: %s' % (l_o, r_o))
 
         gyro_heading = self.angle_controller.get_angle()
         desired_heading = pf.r2d(self.left.getHeading())
 
-
         angleDifference = pf.boundHalfDegrees(desired_heading - gyro_heading)
         turn = 0.025 * angleDifference
-
-        # print('gyro', gyro_heading, 'desired', desired_heading, 'anglediff',angleDifference, 'turn', turn)
 
         self.drivetrain.manual_drive(l_o + turn, r_o - turn)
 
         if self.left.isFinished() and self.right.isFinished():
-            print('both finished')
+            self.stop()
             self.finished = True
 
-    def on_disable(self):
+    def stop(self):
         self.drivetrain.set_manual_mode(False)
+        self.drivetrain.differential_drive(0)
