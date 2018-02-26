@@ -4,7 +4,8 @@ from collections import namedtuple
 from controllers import position_controller, angle_controller, path_controller
 
 TrajectoryAction = namedtuple('TrajectoryAction',
-                              ['rotate', 'position', 'path', 'timeout'])
+                              ['rotate', 'position', 'path', 'timeout',
+                               'reverse'])
 
 
 class TrajectoryController:
@@ -19,9 +20,11 @@ class TrajectoryController:
         self.has_reset = False
         self.timeout_start = None
 
-    def push(self, rotate=None, position=None, path=None, timeout=None):
+    def push(self, rotate=None, position=None, path=None, reverse=None,
+             timeout=None):
         self.actions.append(TrajectoryAction(rotate=rotate, position=position,
-                                             path=path, timeout=timeout))
+                                             path=path, reverse=reverse,
+                                             timeout=timeout))
 
     def reset(self):
         self.actions = []
@@ -65,7 +68,8 @@ class TrajectoryController:
 
             elif self.current_action.path:
                 if not self.has_reset:
-                    self.path_controller.set(self.current_action.path)
+                    self.path_controller.set(self.current_action.path,
+                                             self.current_action.reverse)
                     self.has_reset = True
                 else:
                     self.path_controller.run()

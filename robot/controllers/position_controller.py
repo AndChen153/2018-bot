@@ -1,5 +1,6 @@
 from magicbot import tunable
 from wpilib import PIDController
+import hal
 
 from components.drivetrain import Drivetrain
 from .base_pid_controller import BasePIDComponent
@@ -14,12 +15,12 @@ class PositionController(BasePIDComponent):
     kI = tunable(0)
     kD = tunable(0.005)
     kF = tunable(0.0)
-    kToleranceInches = tunable(0.75)
+    kToleranceInches = tunable(0.2 if hal.HALIsSimulation() else 0.75)
     kIzone = tunable(0)
 
     angle_controller = AngleController
 
-    kAngleP = 0.1
+    kAngleP = 0.05 if hal.HALIsSimulation() else 0.1
     kAngleI = 0
     kAngleD = 0
     kAngleF = 0

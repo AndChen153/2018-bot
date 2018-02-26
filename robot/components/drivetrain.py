@@ -17,8 +17,8 @@ HIGH_GEAR = False
 LOW_GEAR = True
 
 UNITS_PER_REV = 4096
-DISTANCE_PER_REV = (2 * math.pi * 3) / (3 / 1) / (54 / 30)
-DISTANCE_PER_REV_METERS = (2 * math.pi * 0.0762) / (3 / 1) / (54 / 30)
+DISTANCE_PER_REV = (2 * math.pi * 3) / (3 / 1) / (54 / 30)  # inch
+DISTANCE_PER_REV_METERS = (2 * math.pi * 0.0762) / (3 / 1) / (54 / 30)  # m
 
 DEADBAND = 0.05
 
@@ -79,10 +79,11 @@ class Drivetrain:
         '''
         Returns averaged quadrature position in inches.
         '''
-        left_position = -self.left_motor_master.getQuadraturePosition()
-        right_position = self.right_motor_master.getQuadraturePosition()
-        return (((left_position + right_position) / 2) *
-                (1 / UNITS_PER_REV) * DISTANCE_PER_REV)
+        left_position = self.get_left_encoder()
+        right_position = self.get_right_encoder()
+        position = (((left_position + right_position) / 2) *
+                    (1 / UNITS_PER_REV) * DISTANCE_PER_REV)
+        return position
 
     def drive(self, *args):
         self.differential_drive(*args)
@@ -168,8 +169,8 @@ class Drivetrain:
         if self.is_manual_mode:
             if self.pending_manual_drive:
                 left, right = self.pending_manual_drive
-                left = self.robot_drive.applyDeadband(left, DEADBAND)
-                right = self.robot_drive.applyDeadband(right, DEADBAND)
+                # left = self.robot_drive.applyDeadband(left, DEADBAND)
+                # right = self.robot_drive.applyDeadband(right, DEADBAND)
                 self.left_motor_master.set(-left)
                 self.right_motor_master.set(right)
                 self.pending_manual_drive = None

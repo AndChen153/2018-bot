@@ -1,5 +1,6 @@
 from magicbot import tunable
 from robotpy_ext.common_drivers import navx
+import hal
 
 from components.drivetrain import Drivetrain
 from .base_pid_controller import BasePIDComponent
@@ -12,11 +13,11 @@ class AngleController(BasePIDComponent):
 
     drivetrain = Drivetrain
 
-    kP = tunable(0.1)
+    kP = tunable(0.01 if hal.HALIsSimulation() else 0.1)
     kI = tunable(0)
     kD = tunable(0)
     kF = tunable(0)
-    kToleranceDegrees = tunable(0.75)
+    kToleranceDegrees = tunable(0.5 if hal.HALIsSimulation() else 0.75)
     kIzone = tunable(0)
 
     navx = navx.AHRS
@@ -26,7 +27,10 @@ class AngleController(BasePIDComponent):
 
         self.last_angle = 0
 
-        self.set_abs_output_range(0.13, 0.25)
+        if hal.HALIsSimulation():
+            self.set_abs_output_range(0.08, 0.25)
+        else:
+            self.set_abs_output_range(0.13, 0.25)
 
         if hasattr(self, 'pid'):
             self.pid.setInputRange(-180.0, 180.0)

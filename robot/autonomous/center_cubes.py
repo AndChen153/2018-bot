@@ -10,6 +10,8 @@ from components.field import Field, SwitchState
 
 class CenterAutonomous(StatefulAutonomous):
 
+    ONE_CUBE_ONLY = False
+
     trajectory_controller = TrajectoryController
     elevator = Elevator
     grabber = Grabber
@@ -48,7 +50,9 @@ class CenterAutonomous(StatefulAutonomous):
             self.done()
             return
 
-        self.trajectory_controller.push(position=-30)
+        self.trajectory_controller.push(path='center_%s_reverse' %
+                                             self.path_key,
+                                        reverse=True)
         self.trajectory_controller.push(rotate=45 * self.sign)
         self.trajectory_controller.push(position=40)
         self.next_state('backup')
@@ -62,7 +66,8 @@ class CenterAutonomous(StatefulAutonomous):
         if self.trajectory_controller.is_finished():
             self.trajectory_controller.push(position=-40)
             self.trajectory_controller.push(rotate=-45 * self.sign)
-            self.trajectory_controller.push(position=30)
+            self.trajectory_controller.push(path='center_%s_return' %
+                                            self.path_key)
             self.next_state('return_from_second_cube')
 
     @state

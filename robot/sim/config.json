@@ -4,9 +4,9 @@
       "w": 2.91,
       "h": 3.33,
       "start_positions": [
-        {"x": 2, "y": 23, "angle": 0, "name": "lower"},
-        {"x": 2, "y": 13.875, "angle": 0, "name": "middle"},
-        {"x": 2, "y": 4.75, "angle": 0, "name": "top"}
+        {"x": 1.665, "y": 23, "angle": 0, "name": "lower"},
+        {"x": 1.665, "y": 13.875, "angle": 0, "name": "middle"},
+        {"x": 1.665, "y": 4.75, "angle": 0, "name": "top"}
       ]
     },
     "CAN": {

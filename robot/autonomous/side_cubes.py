@@ -30,10 +30,16 @@ class SideAutonomous(StatefulAutonomous):
         self.trajectory_controller.reset()
         switch_side = self.field.get_switch_side()
         if switch_side is not None:
-            self.sign = 1 if self.start_side == SwitchState.LEFT else -1
+            if switch_side == SwitchState.LEFT:
+                self.path_key = 'left'
+                self.sign = 1
+            else:
+                self.path_key = 'right'
+                self.sign = -1
+
             if switch_side == self.start_side:
                 if self.ONE_CUBE_ONLY:
-                    self.trajectory_controller.push(position=158)
+                    self.trajectory_controller.push(path='side_forward')
                     self.trajectory_controller.push(rotate=90 * self.sign)
                     self.trajectory_controller.push(position=20, timeout=0.5)
                 else:
@@ -44,9 +50,10 @@ class SideAutonomous(StatefulAutonomous):
                     self.trajectory_controller.push(position=20, timeout=0.5)
             else:
                 self.elevator.lower_to_ground()
-                self.trajectory_controller.push(position=130)
-                self.trajectory_controller.push(rotate=180 * self.sign)
-                self.trajectory_controller.push(position=60)
+                self.trajectory_controller.push(path='side_forward')
+                self.trajectory_controller.push(path='side_return_%s'
+                                                     % self.path_key,
+                                                reverse=True)
                 self.end_after_trajectory = True
             self.next_state('execute_trajectory')
 
@@ -117,10 +124,12 @@ class TwoCubeRight(SideAutonomous):
 class OneCubeLeft(SideAutonomous):
 
     MODE_NAME = 'Left - One Cube'
+    ONE_CUBE_ONLY = True
     start_side = SwitchState.LEFT
 
 
 class OneCubeRight(SideAutonomous):
 
     MODE_NAME = 'Right - One Cube'
+    ONE_CUBE_ONLY = True
     start_side = SwitchState.RIGHT
