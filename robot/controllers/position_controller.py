@@ -35,6 +35,7 @@ class PositionController(BasePIDComponent):
 
         # Angle correction PID controller - used to maintain a straight
         # heading while the encoders track distance traveled.
+        self._angle_offset = 0
         self.angle_pid_controller = PIDController(
             Kp=self.kAngleP, Ki=self.kAngleI, Kd=self.kAngleD, Kf=self.kAngleF,
             source=self.get_angle,
@@ -48,12 +49,12 @@ class PositionController(BasePIDComponent):
         return self.drivetrain.get_position()
 
     def get_angle(self):
-        return self.angle_controller.get_angle()
+        return self.angle_controller.get_angle() - self._angle_offset
 
     def reset_position_and_heading(self):
         self.drivetrain.shift_low_gear()
         self.drivetrain.reset_position()
-        self.angle_controller.reset_angle()
+        self._angle_offset = self.angle_controller.get_angle()
         self.angle_pid_controller.setSetpoint(0)
 
     def move_to(self, position):

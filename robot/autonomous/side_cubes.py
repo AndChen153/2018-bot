@@ -12,6 +12,7 @@ class SideAutonomous(StatefulAutonomous):
 
     DEFAULT = False
     ONE_CUBE_ONLY = False
+    SAME_SIDE_ONLY = False
     start_side = None
 
     angle_controller = AngleController
@@ -28,33 +29,42 @@ class SideAutonomous(StatefulAutonomous):
         self.elevator.release_lock()
         self.elevator.raise_to_switch()
         self.trajectory_controller.reset()
-        switch_side = self.field.get_switch_side()
-        if switch_side is not None:
-            if switch_side == SwitchState.LEFT:
+        self.switch_side = self.field.get_switch_side()
+        if self.switch_side is not None:
+
+            # Path key
+            if self.switch_side == SwitchState.LEFT:
                 self.path_key = 'left'
                 self.sign = 1
             else:
                 self.path_key = 'right'
                 self.sign = -1
 
-            if switch_side == self.start_side:
-                if self.ONE_CUBE_ONLY:
-                    self.trajectory_controller.push(path='side_forward')
-                    self.trajectory_controller.push(rotate=90 * self.sign)
-                    self.trajectory_controller.push(position=20, timeout=0.5)
-                else:
-                    self.trajectory_controller.push(position=228)
-                    self.trajectory_controller.push(rotate=90 * self.sign)
-                    self.trajectory_controller.push(position=60)
-                    self.trajectory_controller.push(rotate=90 * self.sign)
-                    self.trajectory_controller.push(position=20, timeout=0.5)
+            # Start side key
+            if self.start_side == SwitchState.LEFT:
+                self.start_side_key = 'left'
             else:
-                self.elevator.lower_to_ground()
+                self.start_side_key = 'right'
+
+            if self.switch_side == self.start_side:
                 self.trajectory_controller.push(path='side_forward')
-                self.trajectory_controller.push(path='side_return_%s'
-                                                     % self.path_key,
-                                                reverse=True)
-                self.end_after_trajectory = True
+                self.trajectory_controller.push(rotate=90 * self.sign)
+                self.trajectory_controller.push(position=20, timeout=0.5)
+            else:
+                if self.SAME_SIDE_ONLY:
+                    self.elevator.lower_to_ground()
+                    self.trajectory_controller.push(path='side_forward')
+                    self.trajectory_controller.push(path='side_return_%s'
+                                                         % self.path_key,
+                                                    reverse=True)
+                    self.end_after_trajectory = True
+                else:
+                    self.trajectory_controller.push(
+                        path='side_%s_around_back_to_opposite_side'
+                             % self.start_side_key)
+                    self.trajectory_controller.push(rotate=-90 * self.sign)
+                    self.trajectory_controller.push(position=20, timeout=0.5)
+
             self.next_state('execute_trajectory')
 
     @state
@@ -74,34 +84,36 @@ class SideAutonomous(StatefulAutonomous):
         if self.ONE_CUBE_ONLY:
             self.done()
             return
-        self.trajectory_controller.push(position=-20)
-        self.trajectory_controller.push(position=45 * self.sign)
-        self.trajectory_controller.push(position=10)
+        if self.switch_side == self.start_side:
+            self.trajectory_controller.push(
+                path='side_%s_reverse_to_same_side_cube' % self.start_side_key,
+                reverse=True)
+            self.trajectory_controller.push(
+                path='side_%s_approach_same_side_cube' % self.start_side_key)
+            self.trajectory_controller.push(
+                path='side_%s_return_approach_same_side' % self.start_side_key,
+                reverse=True)
+
+        else:
+            raise NotImplementedError
+
         self.next_state('execute_hunt_trajectory')
 
     @state
     def execute_hunt_trajectory(self):
         self.elevator.lower_to_ground()
-        if self.trajectory_controller.is_finished() and \
-                self.elevator.is_at_position(ElevatorPosition.GROUND):
-            self.next_state('intake_second_cube')
-
-    @timed_state(duration=1, next_state='rotate_back')
-    def intake_second_cube(self):
-        self.grabber.intake()
-
-    def rotate_back(self):
-        self.elevator.raise_to_switch()
-        self.trajectory_controller.push(position=-10)
-        self.trajectory_controller.push(position=-45 * self.sign)
-        self.trajectory_controller.push(position=10, timeout=0.5)
-        if self.trajectory_controller.is_finished() and \
-                self.elevator.is_at_position(ElevatorPosition.SWITCH):
-            self.next_state('execute_move_trajectory')
+        if self.elevator.is_at_position(ElevatorPosition.GROUND):
+            self.grabber.intake()
+        if self.trajectory_controller.is_finished():
+            self.trajectory_controller.push(
+                path='side_%s_deposit_same_side_cube' % self.start_side_key)
+            self.next_state('return_to_deposit')
 
     @state
-    def execute_move_trajectory(self):
-        if self.trajectory_controller.is_finished():
+    def return_to_deposit(self):
+        self.elevator.raise_to_switch()
+        if self.trajectory_controller.is_finished() and \
+                self.elevator.is_at_position(ElevatorPosition.SWITCH):
             self.next_state('deposit_second_cube')
 
     @timed_state(duration=3)
@@ -125,6 +137,7 @@ class OneCubeLeft(SideAutonomous):
 
     MODE_NAME = 'Left - One Cube'
     ONE_CUBE_ONLY = True
+    SAME_SIDE_ONLY = False
     start_side = SwitchState.LEFT
 
 
@@ -132,4 +145,5 @@ class OneCubeRight(SideAutonomous):
 
     MODE_NAME = 'Right - One Cube'
     ONE_CUBE_ONLY = True
+    SAME_SIDE_ONLY = False
     start_side = SwitchState.RIGHT

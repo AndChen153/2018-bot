@@ -68,6 +68,27 @@ TRAJECTORIES = {
     'center_right_return': [
         pf.Waypoint(2.25, 3.47, 0),
         pf.Waypoint(3.75, 3.25, 0)
+    ],
+    'side_right_around_back_to_opposite_side': [
+        pf.Waypoint(0, 1.5, 0),
+        pf.Waypoint(5.5, 2.2, math.radians(60)),
+        pf.Waypoint(5.75, 5.4, math.radians(90))
+    ],
+    'side_right_reverse_to_same_side_cube': [
+        pf.Waypoint(4.25, 2.20, math.radians(90)),
+        pf.Waypoint(6.5, 1.25, math.radians(135))
+    ],
+    'side_right_approach_same_side_cube': [
+        pf.Waypoint(6.5, 1.25, math.radians(135)),
+        pf.Waypoint(5.5, 2, math.radians(135))
+    ],
+    'side_right_return_approach_same_side': [
+        pf.Waypoint(5.5, 2, math.radians(135)),
+        pf.Waypoint(6.5, 1.25, math.radians(135))
+    ],
+    'side_right_deposit_same_side_cube': [
+        pf.Waypoint(6.5, 1.25, math.radians(135)),
+        pf.Waypoint(4.25, 2.20, math.radians(90)),
     ]
 }
 
@@ -79,10 +100,21 @@ for key, points in list(TRAJECTORIES.items()):
         TRAJECTORIES[new_key] = [
             points[0],
             pf.Waypoint(points[1].x, points[0].y +
-                        (points[0].y - points[1].y), points[1].angle)
+                        (points[0].y - points[1].y),
+                        -points[1].angle)
         ]
 
+        # Add 3rd point
+        if len(points) > 2:
+            TRAJECTORIES[new_key].append(
+                pf.Waypoint(points[2].x, TRAJECTORIES[new_key][1].y +
+                            (points[1].y - points[2].y),
+                            -points[2].angle)
+            )
+
 if __name__ == '__main__':
+
+    paths = {}
 
     for key, points in TRAJECTORIES.items():
 
@@ -100,12 +132,13 @@ if __name__ == '__main__':
         left_traj = modifier.getLeftTrajectory()
         right_traj = modifier.getRightTrajectory()
 
-        pickle.dump(left_traj, open(
-            sys.argv[1] + '/' + key + '-l.pickle', 'wb'))
-        pickle.dump(right_traj, open(
-            sys.argv[1] + '/' + key + '-r.pickle', 'wb'))
-        pickle.dump(trajectory, open(
-            sys.argv[1] + '/' + key + '.pickle', 'wb'))
-        pf.serialize_csv(sys.argv[1] + '/' + key + '.csv', trajectory)
-        pf.serialize_csv(sys.argv[1] + '/' + key + '-l.csv', left_traj)
-        pf.serialize_csv(sys.argv[1] + '/' + key + '-r.csv', right_traj)
+        paths[key + '-l'] = left_traj
+        paths[key + '-r'] = right_traj
+        paths[key] = trajectory
+
+        if len(sys.argv) > 2 and sys.argv[2] == '--dump-csvs':
+            pf.serialize_csv(sys.argv[1] + '/' + key + '.csv', trajectory)
+            pf.serialize_csv(sys.argv[1] + '/' + key + '-l.csv', left_traj)
+            pf.serialize_csv(sys.argv[1] + '/' + key + '-r.csv', right_traj)
+
+    pickle.dump(paths, open(sys.argv[1] + '/paths.pickle', 'wb'))

@@ -23,6 +23,19 @@ OFFSET_X = 1.5
 OFFSET_Y = 1.25
 
 
+def load_paths():
+    '''
+    Load paths from pickle.
+    '''
+    base_path = path.dirname(__file__)
+    pickle_path = path.abspath(path.join(base_path, '../paths/paths.pickle'))
+    paths = pickle.load(open(pickle_path, 'rb'))
+    return paths
+
+
+PATHS = load_paths()
+
+
 class PathController(StateMachine):
 
     drivetrain = drivetrain.Drivetrain
@@ -63,10 +76,8 @@ class PathController(StateMachine):
         self.drivetrain.reset_position()
         self.angle_controller.reset_angle()
 
-        basepath = path.dirname(__file__)
-        traj_path = path.abspath(path.join(basepath, '../paths', self.path))
-        left_traj = pickle.load(open(traj_path + '-l.pickle', 'rb'))
-        right_traj = pickle.load(open(traj_path + '-r.pickle', 'rb'))
+        left_traj = PATHS[self.path + '-l']
+        right_traj = PATHS[self.path + '-r']
 
         self.left.reset()
         self.right.reset()
@@ -74,7 +85,7 @@ class PathController(StateMachine):
         self.right.setTrajectory(right_traj)
 
         if SIM_PRINT_PATHS and hal.HALIsSimulation():
-            traj = pickle.load(open(traj_path + '.pickle', 'rb'))
+            traj = PATHS[self.path]
             self.renderer = pyfrc.sim.get_user_renderer()
             if self.renderer:
                 y_offset = OFFSET_Y
