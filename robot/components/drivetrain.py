@@ -155,10 +155,27 @@ class Drivetrain:
         return self.get_right_encoder() * \
             (1 / UNITS_PER_REV) * DISTANCE_PER_REV_METERS
 
+    def get_left_encoder_velocity(self):
+        return -self.left_motor_master.getQuadratureVelocity()
+
+    def get_right_encoder_velocity(self):
+        return self.right_motor_master.getQuadratureVelocity()
+
+    def get_left_encoder_velocity_meters(self):
+        return self.get_left_encoder_velocity() * \
+            (1 / UNITS_PER_REV) * DISTANCE_PER_REV_METERS
+
+    def get_right_encoder_velocity_meters(self):
+        return self.get_right_encoder_velocity() * \
+            (1 / UNITS_PER_REV) * DISTANCE_PER_REV_METERS
+
     def set_manual_mode(self, is_manual):
         self.is_manual_mode = is_manual
+        if not is_manual:
+            self.pending_manual_drive = None
 
     def execute(self):
+        # print('exec drivetrain', self.pending_manual_drive)
         # print('dist_traveled_meters', self.get_left_encoder_meters(),
         #       self.get_right_encoder_meters())
 

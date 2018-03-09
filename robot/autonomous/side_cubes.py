@@ -13,6 +13,7 @@ class SideAutonomous(StatefulAutonomous):
     DEFAULT = False
     ONE_CUBE_ONLY = False
     SAME_SIDE_ONLY = False
+    AROUND_BACK = False
     start_side = None
 
     angle_controller = AngleController
@@ -46,8 +47,16 @@ class SideAutonomous(StatefulAutonomous):
             else:
                 self.start_side_key = 'right'
 
+            print('Running %s-cube SIDE starting from %s & going to %s' %
+                  ('1' if self.ONE_CUBE_ONLY else '2', self.start_side_key,
+                   self.path_key))
+
             if self.switch_side == self.start_side:
-                self.trajectory_controller.push(path='side_forward')
+                if self.AROUND_BACK:
+                    self.trajectory_controller.push(path='side_%s_to_back'
+                                                         % self.path_key)
+                else:
+                    self.trajectory_controller.push(path='side_forward')
                 self.trajectory_controller.push(rotate=90 * self.sign)
                 self.trajectory_controller.push(position=20, timeout=0.5)
             else:
@@ -85,17 +94,24 @@ class SideAutonomous(StatefulAutonomous):
             self.done()
             return
         if self.switch_side == self.start_side:
-            self.trajectory_controller.push(
-                path='side_%s_reverse_to_same_side_cube' % self.start_side_key,
-                reverse=True)
-            self.trajectory_controller.push(
-                path='side_%s_approach_same_side_cube' % self.start_side_key)
-            self.trajectory_controller.push(
-                path='side_%s_return_approach_same_side' % self.start_side_key,
-                reverse=True)
+            if self.AROUND_BACK:
+                self.trajectory_controller.push(
+                    path='side_%s_back_to_second_cube' % self.start_side_key,
+                    reverse=True)
+            else:
+                self.trajectory_controller.push(
+                    path='side_%s_reverse_to_same_side_cube' % self.start_side_key,
+                    reverse=True)
+                self.trajectory_controller.push(
+                    path='side_%s_approach_same_side_cube' % self.start_side_key)
+                self.trajectory_controller.push(
+                    path='side_%s_return_approach_same_side' % self.start_side_key,
+                    reverse=True)
 
         else:
-            raise NotImplementedError
+            # raise NotImplementedError
+            self.done()
+            return
 
         self.next_state('execute_hunt_trajectory')
 
@@ -125,12 +141,14 @@ class TwoCubeLeft(SideAutonomous):
 
     MODE_NAME = 'Left - Two Cubes'
     start_side = SwitchState.LEFT
+    AROUND_BACK = True
 
 
 class TwoCubeRight(SideAutonomous):
 
     MODE_NAME = 'Right - Two Cubes'
     start_side = SwitchState.RIGHT
+    AROUND_BACK = True
 
 
 class OneCubeLeft(SideAutonomous):

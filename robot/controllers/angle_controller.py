@@ -26,6 +26,7 @@ class AngleController(BasePIDComponent):
         super().__init__(self.get_angle, 'angle_controller')
 
         self.last_angle = 0
+        self.angle_reset_factor = 0
 
         if hal.HALIsSimulation():
             self.set_abs_output_range(0.08, 0.25)
@@ -46,10 +47,10 @@ class AngleController(BasePIDComponent):
         # print('current_angle', self.navx.getYaw())
         try:
             self.last_angle = self.navx.getYaw()
-            return self.last_angle
+            return self.last_angle - self.angle_reset_factor
         except Exception as e:
             print('!!! gyro error, falling back', e)
-            return self.last_angle
+            return self.last_angle - self.angle_reset_factor
 
     def align_to(self, angle):
         """
@@ -87,7 +88,12 @@ class AngleController(BasePIDComponent):
 
     def reset_angle(self):
         self.drivetrain.shift_low_gear()
-        self.navx.reset()
+        self.angle_reset_factor += self.get_angle()
+        # if hal.HALIsSimulation():
+        #     self.angle_reset_factor += self.get_angle()
+        # else:
+        #     self.navx.reset()
+        print('angle_controller#reset_angle', self.get_angle())
 
     def compute_error(self, setpoint, pid_input):
         """

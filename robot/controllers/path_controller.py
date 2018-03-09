@@ -2,7 +2,7 @@ from os import path
 import pickle
 
 import hal
-from magicbot import StateMachine, state
+from magicbot import StateMachine, state, timed_state
 import pathfinder as pf
 from pathfinder.followers import DistanceFollower
 
@@ -44,6 +44,7 @@ class PathController(StateMachine):
     def setup(self):
         self.finished = False
         self.renderer = None
+        self.initial_desired_heading = None
 
         self.left = DistanceFollower([])
         self.right = DistanceFollower([])
@@ -54,14 +55,17 @@ class PathController(StateMachine):
         # - Derivative gain (tracking)
         # - Velocity ratio (1/max velo in trajectory config)
         # - Accel gain
-        self.left.configurePIDVA(1, 0.0, 0.2, 1 / MAX_VELOCITY, 0)
-        self.right.configurePIDVA(1, 0.0, 0.2, 1 / MAX_VELOCITY, 0)
+        # self.left.configurePIDVA(1, 0.0, 0.2, 1 / MAX_VELOCITY, 0)
+        # self.right.configurePIDVA(1, 0.0, 0.2, 1 / MAX_VELOCITY, 0)
+        self.left.configurePIDVA(1, 0.0, 0, 1 / MAX_VELOCITY, 0)
+        self.right.configurePIDVA(1, 0.0, 0, 1 / MAX_VELOCITY, 0)
 
     def set(self, _path, reverse=False):
         self.path = _path
         self.reverse = reverse
         print('[path controller] path set: %s' % _path)
         self.finished = False
+        self.initial_desired_heading = None
 
     def is_finished(self):
         return self.finished
@@ -73,8 +77,11 @@ class PathController(StateMachine):
     def prepare(self):
         self.drivetrain.shift_low_gear()
         self.drivetrain.set_manual_mode(True)
-        self.drivetrain.reset_position()
-        self.angle_controller.reset_angle()
+        self.position_offset = [
+            self.drivetrain.get_left_encoder_meters(),
+            self.drivetrain.get_right_encoder_meters()
+        ]
+        self.angle_offset = self.angle_controller.get_angle()
 
         left_traj = PATHS[self.path + '-l']
         right_traj = PATHS[self.path + '-r']
@@ -84,28 +91,28 @@ class PathController(StateMachine):
         self.left.setTrajectory(left_traj)
         self.right.setTrajectory(right_traj)
 
-        if SIM_PRINT_PATHS and hal.HALIsSimulation():
-            traj = PATHS[self.path]
-            self.renderer = pyfrc.sim.get_user_renderer()
-            if self.renderer:
-                y_offset = OFFSET_Y
-                if self.reverse:
-                    y_offset *= -1
-                self.renderer.draw_pathfinder_trajectory(
-                    left_traj,
-                    color='blue',
-                    scale=(CONV_X, CONV_Y),
-                    offset=(-OFFSET_X, y_offset))
-                self.renderer.draw_pathfinder_trajectory(
-                    right_traj,
-                    color='blue',
-                    offset=(OFFSET_X, y_offset),
-                    scale=(CONV_X, CONV_Y))
-                self.renderer.draw_pathfinder_trajectory(
-                    traj,
-                    color='red',
-                    offset=(0, y_offset),
-                    scale=(CONV_X, CONV_Y))
+        # if SIM_PRINT_PATHS and hal.HALIsSimulation():
+        #     traj = PATHS[self.path]
+        #     self.renderer = pyfrc.sim.get_user_renderer()
+        #     if self.renderer:
+        #         y_offset = OFFSET_Y
+        #         if self.reverse:
+        #             y_offset *= -1
+        #         self.renderer.draw_pathfinder_trajectory(
+        #             left_traj,
+        #             color='blue',
+        #             scale=(CONV_X, CONV_Y),
+        #             offset=(-OFFSET_X, y_offset))
+        #         self.renderer.draw_pathfinder_trajectory(
+        #             right_traj,
+        #             color='blue',
+        #             offset=(OFFSET_X, y_offset),
+        #             scale=(CONV_X, CONV_Y))
+        #         self.renderer.draw_pathfinder_trajectory(
+        #             traj,
+        #             color='red',
+        #             offset=(0, y_offset),
+        #             scale=(CONV_X, CONV_Y))
 
         self.next_state('exec_path')
 
@@ -115,8 +122,10 @@ class PathController(StateMachine):
         # (self.drivetrain.get_left_encoder_meters(),
         #  self.drivetrain.get_right_encoder_meters()))
 
-        l_dist = self.drivetrain.get_left_encoder_meters()
-        r_dist = self.drivetrain.get_right_encoder_meters()
+        l_dist = self.drivetrain.get_left_encoder_meters() \
+            - self.position_offset[0]
+        r_dist = self.drivetrain.get_right_encoder_meters() \
+            - self.position_offset[1]
 
         if self.reverse:
             l_dist *= -1
@@ -130,25 +139,31 @@ class PathController(StateMachine):
 
         # print('[path controller] [calculated] L: %s; R: %s' % (l_o, r_o))
 
-        gyro_heading = self.angle_controller.get_angle()
+        gyro_heading = self.angle_controller.get_angle() - self.angle_offset
         desired_heading = -pf.r2d(self.left.getHeading())
 
         if self.reverse:
             desired_heading += 180
 
-        # print('[path controller] [heading] curr: %s, desired: %s' % \
-        # (gyro_heading, desired_heading))
+        print('[path controller] [heading] curr: %s, desired: %s' %
+              (gyro_heading, desired_heading))
 
-        angleDifference = pf.boundHalfDegrees(desired_heading - gyro_heading)
-        turn = 0.025 * angleDifference
+        if not self.initial_desired_heading:
+            self.initial_desired_heading = desired_heading
+
+        angleDifference = pf.boundHalfDegrees(desired_heading - gyro_heading -
+                                              self.initial_desired_heading)
+        # TURN_FACTOR = 0.025
+        TURN_FACTOR = 0.02
+        turn = TURN_FACTOR * angleDifference
 
         if self.reverse:
             turn *= -1
 
-        # print('[path controller] [angle diff] %s' % (angleDifference))
+        print('[path controller] [angle diff] %s' % (angleDifference))
 
-        # print('[path controller] [calculated w turn] L: %s; R: %s' % \
-        # (l_o + turn, r_o - turn))
+        print('[path controller] [calculated w turn] L: %s; R: %s' %
+              (l_o + turn, r_o - turn))
 
         l_speed = l_o + turn
         r_speed = r_o - turn

@@ -27,16 +27,21 @@ class ElevatorPosition(IntEnum):
 
 class Elevator:
 
+    USE_MOTIONMAGIC = False
+
     motor = WPI_TalonSRX
     solenoid = DoubleSolenoid
     reverse_limit = DigitalInput
 
-    kFreeSpeed = tunable(0.7)
+    kFreeSpeed = tunable(1)
     kZeroingSpeed = tunable(0.3)
     kP = tunable(0.5)
     kI = tunable(0.0)
     kD = tunable(0.0)
     kF = tunable(0.0)
+
+    kCruiseVelocity = 15000
+    kAcceleration = 6000
 
     setpoint = tunable(0)
     value = tunable(0)
@@ -61,6 +66,13 @@ class Elevator:
         self.motor.config_kI(0, self.kI, 0)
         self.motor.config_kD(0, self.kD, 0)
         self.motor.config_kF(0, self.kF, 0)
+
+        try:
+            self.motor.configMotionCruiseVelocity(self.kCruiseVelocity, 0)
+            self.motor.configMotionAcceleration(self.kAcceleration, 0)
+        except NotImplementedError:
+            # Simulator - no motion profiling support
+            self.USE_MOTIONMAGIC = False
 
     def is_encoder_connected(self):
         return self.motor.getPulseWidthRiseToRiseUs() != 0
@@ -155,8 +167,12 @@ class Elevator:
                 self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput,
                                -self.kZeroingSpeed)
             elif self.has_zeroed:  # Don't drive positionally if not zeroed
-                self.motor.set(WPI_TalonSRX.ControlMode.Position,
-                               self.pending_position)
+                if self.USE_MOTIONMAGIC:
+                    self.motor.set(WPI_TalonSRX.ControlMode.MotionMagic,
+                                   self.pending_position)
+                else:
+                    self.motor.set(WPI_TalonSRX.ControlMode.Position,
+                                   self.pending_position)
         else:
             if self.is_encoder_connected():
                 # If no command, hold position in place (basically, a more
