@@ -1,6 +1,7 @@
 import magicbot
 import wpilib
 import ctre
+from networktables import NetworkTables
 from robotpy_ext.common_drivers import navx
 from components import bot, drivetrain, elevator, grabber, field, \
     targeting, ramp, macros
@@ -88,6 +89,10 @@ class SpartaBot(magicbot.MagicRobot):
         self.grabber_auto_controller.enable()
 
     def teleopPeriodic(self):
+        # Adds time to dashboard
+        sd = NetworkTables.getTable('robot')
+        sd.putValue('time', wpilib.Timer.getMatchTime())
+
         # Drive with controller
         angle = self.drive_controller.getX(CONTROLLER_RIGHT)
         if not self.drive_controller.getStickButtonPressed(CONTROLLER_RIGHT):
