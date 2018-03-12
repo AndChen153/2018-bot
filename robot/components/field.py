@@ -1,7 +1,7 @@
 from enum import IntEnum
-from wpilib import DriverStation
-# from networktables import NetworkTables
-
+import wpilib
+from networktables import NetworkTables
+from controllers.angle_controller import AngleController
 
 class SwitchState(IntEnum):
     LEFT = 0
@@ -11,8 +11,10 @@ class SwitchState(IntEnum):
 
 class Field:
 
+    angle_controller = AngleController
+
     def get_switch_side(self):
-        message = DriverStation.getInstance().getGameSpecificMessage().lower()
+        message = wpilib.DriverStation.getInstance().getGameSpecificMessage().lower()
         if message:
             if message[0] == 'l':
                 return SwitchState.LEFT
@@ -22,5 +24,7 @@ class Field:
             return SwitchState.UNKNOWN
 
     def execute(self):
-        # NetworkTables.putValue('/field/switch_side', self.get_switch_side())
-        pass
+        robot_table = NetworkTables.getTable('robot')
+        robot_table.putValue('switch_side', self.get_switch_side())
+        robot_table.putValue('angle', self.angle_controller.get_angle())
+        robot_table.putValue('time', wpilib.Timer.getMatchTime())
