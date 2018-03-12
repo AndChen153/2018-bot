@@ -27,7 +27,6 @@ class SpartaBot(magicbot.MagicRobot):
     drivetrain = drivetrain.Drivetrain
     elevator = elevator.Elevator
     grabber = grabber.Grabber
-    field = field.Field
     ramp = ramp.Ramp
     targeting = targeting.Targeting
 
@@ -41,6 +40,8 @@ class SpartaBot(magicbot.MagicRobot):
     cube_hunter_controller = cube_hunter_controller.CubeHunterController
     hold_position_controller = hold_position_controller.HoldPositionController
     path_controller = path_controller.PathController
+
+    field = field.Field
 
     def createObjects(self):
         # Drivetrain
@@ -89,10 +90,6 @@ class SpartaBot(magicbot.MagicRobot):
         self.grabber_auto_controller.enable()
 
     def teleopPeriodic(self):
-        # Adds time to dashboard
-        sd = NetworkTables.getTable('robot')
-        sd.putValue('time', wpilib.Timer.getMatchTime())
-
         # Drive with controller
         angle = self.drive_controller.getX(CONTROLLER_RIGHT)
         if not self.drive_controller.getStickButtonPressed(CONTROLLER_RIGHT):
