@@ -27,21 +27,22 @@ class ElevatorPosition(IntEnum):
 
 class Elevator:
 
-    USE_MOTIONMAGIC = False
+    USE_MOTIONMAGIC = True
+    USE_LIMIT_SWITCH = True
 
     motor = WPI_TalonSRX
     solenoid = DoubleSolenoid
     reverse_limit = DigitalInput
 
     kFreeSpeed = tunable(1)
-    kZeroingSpeed = tunable(0.3)
-    kP = tunable(0.5)
+    kZeroingSpeed = tunable(0.1)
+    kP = tunable(0.3)
     kI = tunable(0.0)
     kD = tunable(0.0)
     kF = tunable(0.0)
 
-    kCruiseVelocity = 15000
-    kAcceleration = 6000
+    kCruiseVelocity = 30000
+    kAcceleration = 12000
 
     setpoint = tunable(0)
     value = tunable(0)
@@ -128,7 +129,9 @@ class Elevator:
         #       'pos', self.pending_position,
         #       'setpoint', self.setpoint,
         #       'val', self.value,
-        #       'err', self.error)
+        #       'err', self.error,
+        #       'pos', self.motor.getQuadraturePosition(),
+        #       'velo', self.motor.getQuadratureVelocity())
 
         # Brake - apply the brake either when we reach peak of movement
         # (for upwards motion), and thus ds/dt = v = 0, or else immediately
@@ -145,7 +148,7 @@ class Elevator:
 
         # Zero the encoder when hits bottom of elevator - limit switch NC
         # Also ensure we don't drive past the bottom limit.
-        if not self.reverse_limit.get():
+        if self.USE_LIMIT_SWITCH and not self.reverse_limit.get():
             self.motor.setQuadraturePosition(0, TALON_TIMEOUT)
             self.has_zeroed = True
             if self.pending_drive and self.pending_drive <= 0:

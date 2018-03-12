@@ -1,6 +1,6 @@
 from magicbot import tunable
 from ctre import WPI_TalonSRX
-from wpilib import DoubleSolenoid
+from wpilib import DoubleSolenoid, DigitalInput
 from enum import IntEnum
 
 from controllers.hold_position_controller import HoldPositionController
@@ -23,6 +23,7 @@ class WinchState(IntEnum):
 
 class Ramp:
 
+    is_practice_bot = DigitalInput
     solenoid = DoubleSolenoid
     motor = WPI_TalonSRX
 
@@ -51,6 +52,10 @@ class Ramp:
         self.pending_winch = WinchState.LOWERING
 
     def execute(self):
+        if self.is_practice_bot.get():
+            # No ramps on practice bot
+            return
+
         # Winch
         if self.pending_winch == WinchState.RAISING:
             self.motor.set(self.speed)

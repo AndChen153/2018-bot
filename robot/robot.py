@@ -43,6 +43,10 @@ class SpartaBot(magicbot.MagicRobot):
     path_controller = path_controller.PathController
 
     def createObjects(self):
+        # Practice bot
+        # On practice bot, DIO is shorted
+        self.is_practice_bot = wpilib.DigitalInput(9)
+
         # Drivetrain
         self.drivetrain_left_motor_master = ctre.WPI_TalonSRX(4)
         self.drivetrain_left_motor_slave = ctre.WPI_TalonSRX(3)
@@ -56,8 +60,12 @@ class SpartaBot(magicbot.MagicRobot):
         self.elevator_reverse_limit = wpilib.DigitalInput(0)
 
         # Grabber
-        self.grabber_left_motor = ctre.WPI_TalonSRX(2)
-        self.grabber_right_motor = ctre.WPI_TalonSRX(1)
+        if self.is_practice_bot.get():
+            self.grabber_left_motor = ctre.WPI_TalonSRX(1)
+            self.grabber_right_motor = ctre.WPI_TalonSRX(2)
+        else:
+            self.grabber_left_motor = ctre.WPI_TalonSRX(2)
+            self.grabber_right_motor = ctre.WPI_TalonSRX(1)
 
         # Ramp
         self.ramp_solenoid = wpilib.DoubleSolenoid(3, 4)
@@ -80,6 +88,7 @@ class SpartaBot(magicbot.MagicRobot):
         # Macros
         self._is_recording_macro = False
         self._is_playing_macro = False
+        self._is_flippy = False
 
     def teleopInit(self):
         self.elevator.release_lock()
@@ -135,7 +144,10 @@ class SpartaBot(magicbot.MagicRobot):
                 self.grabber.intake()
             elif controller.getTriggerAxis(CONTROLLER_LEFT):
                 self.grabber.deposit()
-            elif controller.getXButton():
+            elif controller.getXButtonReleased():
+                self._is_flippy = not self._is_flippy
+
+            if self._is_flippy:
                 self.grabber_orienter_controller.orient(
                     grabber_orienter_controller.GrabberOrienterSide.FLIPPY)
 
