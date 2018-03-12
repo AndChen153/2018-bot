@@ -20,10 +20,20 @@ WHEELBASE_WIDTH = 0.7619995885  # meters
 # MAX_ACCEL = 9.5
 # MAX_JERK = 100.0
 
+# DT = 0.02
+# MAX_VELOCITY = 3.66
+# MAX_ACCEL = 9.5
+# MAX_JERK = 50
+
+# DT = 0.02
+# MAX_VELOCITY = 3.66
+# MAX_ACCEL = 7
+# MAX_JERK = 50
+
 DT = 0.02
 MAX_VELOCITY = 3.66
-MAX_ACCEL = 9.5
-MAX_JERK = 50
+MAX_ACCEL = 1
+MAX_JERK = 10
 
 # TRAJECTORIES = {
 #     'center_right': [
@@ -49,7 +59,6 @@ MAX_JERK = 50
 #         pf.Waypoint(2.25, 4.75, 0),
 #         pf.Waypoint(3.5, 5.5, 0)
 #     ],
-
 #     'center_right': [
 #         pf.Waypoint(0.89, 4.11, 0),
 #         pf.Waypoint(3.5, 2.72, 0),
@@ -145,7 +154,7 @@ TRAJECTORIES = {
     ],
     'center_right': [
         pf.Waypoint(0.89, 4.11, 0),
-        pf.Waypoint(4, 2.50, 0),
+        pf.Waypoint(3.5, 2.72, 0),
     ],
     'center_right_reverse': [
         pf.Waypoint(3.5, 2.72, 0),

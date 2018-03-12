@@ -11,7 +11,7 @@ class SwitchState(IntEnum):
 
 class Field:
 
-    angle_controller = AngleController
+    # angle_controller = AngleController
 
     def get_switch_side(self):
         message = wpilib.DriverStation.getInstance().getGameSpecificMessage().lower()
@@ -26,5 +26,5 @@ class Field:
     def execute(self):
         robot_table = NetworkTables.getTable('robot')
         robot_table.putValue('switch_side', self.get_switch_side())
-        robot_table.putValue('angle', self.angle_controller.get_angle())
+        # robot_table.putValue('angle', self.angle_controller.get_angle())
         robot_table.putValue('time', wpilib.Timer.getMatchTime())

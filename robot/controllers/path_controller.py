@@ -151,10 +151,12 @@ class PathController(StateMachine):
         if not self.initial_desired_heading:
             self.initial_desired_heading = desired_heading
 
+        print('[path controller] initial heading %s' % self.initial_desired_heading)
+
         angleDifference = pf.boundHalfDegrees(desired_heading - gyro_heading -
                                               self.initial_desired_heading)
         # TURN_FACTOR = 0.025
-        TURN_FACTOR = 0.02
+        TURN_FACTOR = 0.035
         turn = TURN_FACTOR * angleDifference
 
         if self.reverse:
@@ -162,8 +164,8 @@ class PathController(StateMachine):
 
         print('[path controller] [angle diff] %s' % (angleDifference))
 
-        print('[path controller] [calculated w turn] L: %s; R: %s' %
-              (l_o + turn, r_o - turn))
+        # print('[path controller] [calculated w turn] L: %s; R: %s' %
+        #       (l_o + turn, r_o - turn))
 
         l_speed = l_o + turn
         r_speed = r_o - turn
