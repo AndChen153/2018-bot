@@ -32,116 +32,8 @@ WHEELBASE_WIDTH = 0.7619995885  # meters
 
 DT = 0.02
 MAX_VELOCITY = 3.66
-MAX_ACCEL = 1
-MAX_JERK = 10
-
-# TRAJECTORIES = {
-#     'center_right': [
-#         pf.Waypoint(0, 0, 0),
-#         pf.Waypoint(2, 1.95, 0),
-#     ],
-#     'center_left': [
-#         pf.Waypoint(0, 0, 0),
-#         pf.Waypoint(2, -1.95, 0),
-#     ]
-# ]
-#
-# TRAJECTORIES = {
-#     'center_left': [
-#         pf.Waypoint(0.89, 4.11, 0),
-#         pf.Waypoint(3.5, 5.5, 0),
-#     ],
-#     'center_left_reverse': [
-#         pf.Waypoint(3.5, 5.5, 0),
-#         pf.Waypoint(2.25, 4.75, 0)
-#     ],
-#     'center_left_return': [
-#         pf.Waypoint(2.25, 4.75, 0),
-#         pf.Waypoint(3.5, 5.5, 0)
-#     ],
-#     'center_right': [
-#         pf.Waypoint(0.89, 4.11, 0),
-#         pf.Waypoint(3.5, 2.72, 0),
-#     ],
-#     'center_right_reverse': [
-#         pf.Waypoint(3.5, 2.72, 0),
-#         pf.Waypoint(2.25, 3.47, 0)
-#     ],
-#     'center_right_return': [
-#         pf.Waypoint(2.25, 3.47, 0),
-#         pf.Waypoint(3.5, 2.72, 0)
-#     ]
-# }
-
-# TRAJECTORIES = {
-#     'side_forward': [
-#         pf.Waypoint(0, 0, 0),
-#         pf.Waypoint(3.75, 0, 0)
-#     ],
-#     'side_return_right': [
-#         pf.Waypoint(3.75, 0, 0),
-#         pf.Waypoint(1.75, -1.75, 0)
-#     ],
-#     'center_right': [
-#         pf.Waypoint(0.89, 4.11, 0),
-#         pf.Waypoint(4, 2.00, 0),
-#     ],
-#     'center_right_reverse': [
-#         pf.Waypoint(3.5, 2.72, 0),
-#         pf.Waypoint(2.25, 3.47, 0)
-#     ],
-#     'center_right_return': [
-#         pf.Waypoint(2.25, 3.47, 0),
-#         pf.Waypoint(3.8, 3, 0)
-#     ],
-#     'center_approach_second_cube': [
-#         pf.Waypoint(0, 0, 0),
-#         pf.Waypoint(1, 0, 0)
-#     ],
-#     'center_return_second_cube': [
-#         pf.Waypoint(1, 0, 0),
-#         pf.Waypoint(0, 0, 0)
-#     ],
-#     'side_right_around_back_to_opposite_side': [
-#         pf.Waypoint(0, 1.5, 0),
-#         pf.Waypoint(5.5, 2.2, math.radians(60)),
-#         pf.Waypoint(5.75, 8.5, math.radians(90))
-#     ],
-#     'side_right_reverse_to_same_side_cube': [
-#         pf.Waypoint(4.25, 2.2, math.radians(90)),
-#         pf.Waypoint(7, 1.75, math.radians(135))
-
-#         # pf.Waypoint(4.25, 2.2, math.radians(90)),
-#         # pf.Waypoint(5, 1.25, math.radians(150)),
-#         # pf.Waypoint(6.5, 1.25, math.radians(135))
-
-#         # pf.Waypoint(4.25, 2.20, math.radians(90)),
-#         # pf.Waypoint(6.5, 1.25, math.radians(135))
-#     ],
-#     'side_right_approach_same_side_cube': [
-#         pf.Waypoint(6.5, 1.25, math.radians(135)),
-#         pf.Waypoint(5.5, 2, math.radians(135))
-#     ],
-#     'side_right_return_approach_same_side': [
-#         pf.Waypoint(5.5, 2, math.radians(135)),
-#         pf.Waypoint(6.5, 1.25, math.radians(135))
-#     ],
-#     'side_right_deposit_same_side_cube': [
-#         pf.Waypoint(6.5, 1.25, math.radians(135)),
-#         pf.Waypoint(4.25, 2.20, math.radians(90)),
-#     ],
-
-#     'side_right_to_back': [
-#         pf.Waypoint(0, 1.25, math.radians(0)),
-#         pf.Waypoint(3.75, 0.75, math.radians(0)),
-#         pf.Waypoint(5.75, 2.25, math.radians(90))
-#     ],
-#     'side_right_back_to_second_cube': [
-#         pf.Waypoint(5.25, 2.65, math.radians(180)),
-#         pf.Waypoint(6, 3.7, math.radians(225))
-#     ]
-# }
-
+MAX_ACCEL = 4.5
+MAX_JERK = 60.0
 
 TRAJECTORIES = {
     'side_forward': [
@@ -154,22 +46,22 @@ TRAJECTORIES = {
     ],
     'center_right': [
         pf.Waypoint(0.89, 4.11, 0),
-        pf.Waypoint(3.5, 2.72, 0),
+        pf.Waypoint(4, 2.50, 0),
     ],
     'center_right_reverse': [
         pf.Waypoint(3.5, 2.72, 0),
-        pf.Waypoint(2.25, 3.47, 0)
+        pf.Waypoint(1.75, 3.47, 0)
     ],
     'center_right_return': [
-        pf.Waypoint(2.25, 3.47, 0),
-        pf.Waypoint(3.8, 3, 0)
+        pf.Waypoint(1.75, 3.47, 0),
+        pf.Waypoint(3.6, 3.2, 0)
     ],
     'center_approach_second_cube': [
         pf.Waypoint(0, 0, 0),
-        pf.Waypoint(1, 0, 0)
+        pf.Waypoint(1.75, 0, 0)
     ],
     'center_return_second_cube': [
-        pf.Waypoint(1, 0, 0),
+        pf.Waypoint(1.25, 0, 0),
         pf.Waypoint(0, 0, 0)
     ],
     'side_right_around_back_to_opposite_side': [

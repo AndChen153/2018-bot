@@ -144,7 +144,7 @@ class SpartaBot(magicbot.MagicRobot):
             elif controller.getXButtonReleased():
                 self._is_flippy = not self._is_flippy
 
-            if self._is_flippy:
+            if self._is_flippy and self.elevator.is_at_ground():
                 self.grabber_orienter_controller.orient(
                     grabber_orienter_controller.GrabberOrienterSide.FLIPPY)
 

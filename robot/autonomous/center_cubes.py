@@ -73,6 +73,7 @@ class CenterAutonomous(StatefulAutonomous):
 
     @state
     def return_from_second_cube(self):
+        self.elevator.raise_to_switch()
         if self.trajectory_controller.is_finished():
             self.next_state('deposit_second_cube')
 

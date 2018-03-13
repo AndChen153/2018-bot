@@ -2,7 +2,7 @@ from os import path
 import pickle
 
 import hal
-from magicbot import StateMachine, state, timed_state
+from magicbot import StateMachine, state
 import pathfinder as pf
 from pathfinder.followers import DistanceFollower
 
@@ -75,6 +75,14 @@ class PathController(StateMachine):
 
     @state(first=True)
     def prepare(self):
+        # Sanity check encoders
+        if not self.drivetrain.is_left_encoder_connected():
+            print('[path_controller] CRITICAL ERROR: LEFT ENCODER ' +
+                  'NOT CONNECTED. :(')
+        if not self.drivetrain.is_right_encoder_connected():
+            print('[path_controller] CRITICAL ERROR: RIGHT ENCODER ' +
+                  'NOT CONNECTED. :(')
+
         self.drivetrain.shift_low_gear()
         self.drivetrain.set_manual_mode(True)
         self.position_offset = [
@@ -118,6 +126,9 @@ class PathController(StateMachine):
 
     @state
     def exec_path(self):
+        if self.finished:
+            return
+
         # print('[path controller] [current] L: %s; R: %s' %
         # (self.drivetrain.get_left_encoder_meters(),
         #  self.drivetrain.get_right_encoder_meters()))
@@ -145,24 +156,24 @@ class PathController(StateMachine):
         if self.reverse:
             desired_heading += 180
 
-        print('[path controller] [heading] curr: %s, desired: %s' %
-              (gyro_heading, desired_heading))
+        # print('[path controller] [heading] curr: %s, desired: %s' %
+        #       (gyro_heading, desired_heading))
 
         if not self.initial_desired_heading:
             self.initial_desired_heading = desired_heading
 
-        print('[path controller] initial heading %s' % self.initial_desired_heading)
-
         angleDifference = pf.boundHalfDegrees(desired_heading - gyro_heading -
                                               self.initial_desired_heading)
         # TURN_FACTOR = 0.025
-        TURN_FACTOR = 0.035
+        TURN_FACTOR = 0.01
         turn = TURN_FACTOR * angleDifference
 
         if self.reverse:
             turn *= -1
 
-        print('[path controller] [angle diff] %s' % (angleDifference))
+        # print('[path controller] [angle diff] %s [desired] %s [gyro] ' +
+        #       '%s [init desire] %s' % (angleDifference, desired_heading,
+        #       gyro_heading, self.initial_desired_heading))
 
         # print('[path controller] [calculated w turn] L: %s; R: %s' %
         #       (l_o + turn, r_o - turn))

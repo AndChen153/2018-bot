@@ -71,6 +71,12 @@ class Drivetrain:
         self.robot_drive.setDeadband(0)
         self.robot_drive.setSafetyEnabled(False)
 
+    def is_left_encoder_connected(self):
+        return self.left_motor_master.getPulseWidthRiseToRiseUs() != 0
+
+    def is_right_encoder_connected(self):
+        return self.right_motor_master.getPulseWidthRiseToRiseUs() != 0
+
     def reset_position(self):
         self.left_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)
         self.right_motor_master.setQuadraturePosition(0, TALON_TIMEOUT)

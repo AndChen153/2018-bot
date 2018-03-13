@@ -21,7 +21,8 @@ class ElevatorState(IntEnum):
 
 class ElevatorPosition(IntEnum):
     GROUND = 0
-    CARRYING = 2000
+    # CARRYING = 2000
+    CARRYING = 3000
     SWITCH = 23000
 
 
