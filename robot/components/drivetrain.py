@@ -128,7 +128,7 @@ class Drivetrain:
 
         # Small rotation at lower speeds
         if abs(y) <= self.little_rotation_cutoff:
-            rotation = util.abs_clamp(rotation, 0, 0.75)
+            rotation = util.abs_clamp(rotation, 0, 0.6)
 
         self.differential_drive(y, rotation)
 

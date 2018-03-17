@@ -63,9 +63,9 @@ class SideAutonomous(StatefulAutonomous):
                 if self.SAME_SIDE_ONLY:
                     self.elevator.lower_to_ground()
                     self.trajectory_controller.push(path='side_forward')
-                    self.trajectory_controller.push(path='side_return_%s'
-                                                         % self.path_key,
-                                                    reverse=True)
+                    # self.trajectory_controller.push(path='side_return_%s'
+                    #                                      % self.path_key,
+                    #                                 reverse=True)
                     self.end_after_trajectory = True
                 else:
                     self.trajectory_controller.push(
@@ -155,7 +155,7 @@ class OneCubeLeft(SideAutonomous):
 
     MODE_NAME = 'Left - One Cube'
     ONE_CUBE_ONLY = True
-    SAME_SIDE_ONLY = False
+    SAME_SIDE_ONLY = True
     start_side = SwitchState.LEFT
 
 
@@ -163,5 +163,5 @@ class OneCubeRight(SideAutonomous):
 
     MODE_NAME = 'Right - One Cube'
     ONE_CUBE_ONLY = True
-    SAME_SIDE_ONLY = False
+    SAME_SIDE_ONLY = True
     start_side = SwitchState.RIGHT

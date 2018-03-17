@@ -46,7 +46,7 @@ class SpartaBot(magicbot.MagicRobot):
     def createObjects(self):
         # Practice bot
         # On practice bot, DIO is shorted
-        self.is_practice_bot = wpilib.DigitalInput(9)
+        self.is_practice_bot = wpilib.DigitalInput(30)
 
         # Drivetrain
         self.drivetrain_left_motor_master = ctre.WPI_TalonSRX(4)
@@ -62,11 +62,13 @@ class SpartaBot(magicbot.MagicRobot):
 
         # Grabber
         if self.is_practice_bot.get():
+            print('is practice bot')
             self.grabber_left_motor = ctre.WPI_TalonSRX(1)
             self.grabber_right_motor = ctre.WPI_TalonSRX(2)
         else:
-            self.grabber_left_motor = ctre.WPI_TalonSRX(2)
-            self.grabber_right_motor = ctre.WPI_TalonSRX(1)
+            print('is competition bot')
+            self.grabber_left_motor = ctre.WPI_TalonSRX(1)
+            self.grabber_right_motor = ctre.WPI_TalonSRX(2)
 
         # Ramp
         self.ramp_solenoid = wpilib.DoubleSolenoid(3, 4)
@@ -104,7 +106,7 @@ class SpartaBot(magicbot.MagicRobot):
         if not self.drive_controller.getStickButtonPressed(CONTROLLER_RIGHT):
             # Unless the right stick is pressed down, scale down turning inputs
             # to keep the robot from flying around the field / overshooting.
-            angle = util.scale(angle, -1, 1, -0.75, 0.75)
+            angle = util.scale(angle, -1, 1, -0.7, 0.7)
         self.drivetrain.angle_corrected_differential_drive(
             self.drive_controller.getY(CONTROLLER_LEFT), angle)
 

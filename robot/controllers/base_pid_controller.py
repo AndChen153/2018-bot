@@ -90,8 +90,8 @@ class BasePIDComponent:
 
             self.pidWrite(output)
 
-            # print(self.table_name, 'setpoint', self.setpoint, 'value', value,
-            #       'error', err, 'output', output)
+            print(self.table_name, 'setpoint', self.setpoint, 'value', value,
+                  'error', err, 'output', output)
             self.nt.putValue('setpoint', self.setpoint)
             self.nt.putValue('value', value)
             self.nt.putValue('error', err)

@@ -129,9 +129,9 @@ class PathController(StateMachine):
         if self.finished:
             return
 
-        # print('[path controller] [current] L: %s; R: %s' %
-        # (self.drivetrain.get_left_encoder_meters(),
-        #  self.drivetrain.get_right_encoder_meters()))
+        print('[path controller] [current] L: %s; R: %s' %
+        (self.drivetrain.get_left_encoder_meters(),
+         self.drivetrain.get_right_encoder_meters()))
 
         l_dist = self.drivetrain.get_left_encoder_meters() \
             - self.position_offset[0]
@@ -148,7 +148,7 @@ class PathController(StateMachine):
         except Exception:
             return
 
-        # print('[path controller] [calculated] L: %s; R: %s' % (l_o, r_o))
+        print('[path controller] [calculated] L: %s; R: %s' % (l_o, r_o))
 
         gyro_heading = self.angle_controller.get_angle() - self.angle_offset
         desired_heading = -pf.r2d(self.left.getHeading())
@@ -156,8 +156,8 @@ class PathController(StateMachine):
         if self.reverse:
             desired_heading += 180
 
-        # print('[path controller] [heading] curr: %s, desired: %s' %
-        #       (gyro_heading, desired_heading))
+        print('[path controller] [heading] curr: %s, desired: %s' %
+              (gyro_heading, desired_heading))
 
         if not self.initial_desired_heading:
             self.initial_desired_heading = desired_heading
@@ -173,10 +173,10 @@ class PathController(StateMachine):
 
         # print('[path controller] [angle diff] %s [desired] %s [gyro] ' +
         #       '%s [init desire] %s' % (angleDifference, desired_heading,
-        #       gyro_heading, self.initial_desired_heading))
+        #       gyro_heading))
 
-        # print('[path controller] [calculated w turn] L: %s; R: %s' %
-        #       (l_o + turn, r_o - turn))
+        print('[path controller] [calculated w turn] L: %s; R: %s' %
+              (l_o + turn, r_o - turn))
 
         l_speed = l_o + turn
         r_speed = r_o - turn

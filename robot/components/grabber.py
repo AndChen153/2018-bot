@@ -16,7 +16,7 @@ class GrabberState(IntEnum):
 class Grabber:
 
     intake_speed = tunable(0.8)
-    deposit_speed = tunable(0.5)
+    deposit_speed = tunable(0.45)
     current_limit = tunable(0.0)
 
     left_motor = WPI_TalonSRX
@@ -31,7 +31,8 @@ class Grabber:
 
         self._has_cube = False
 
-        self.right_motor.setInverted(True)
+        self.left_motor.setInverted(True)
+        self.right_motor.setInverted(False)
 
     def has_cube_intake_current(self):
         try:
