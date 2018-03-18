@@ -115,9 +115,7 @@ class SpartaBot(magicbot.MagicRobot):
         if self.drive_controller.getBumperReleased(CONTROLLER_LEFT):
             self.drivetrain.shift_toggle()
 
-        # Mirror elevator control & grabber control to both drive and
-        # operator controllers to allow for driveteam flexibility.
-        for controller in [self.drive_controller]:  # self.operator_controller]
+        for controller in [self.drive_controller]:
 
             # Elevator position control
             if controller.getYButton():
@@ -137,7 +135,7 @@ class SpartaBot(magicbot.MagicRobot):
             elif controller_pov == 180:
                 self.elevator.lower_freely()
 
-            # Grabber - right trigger for full intake, right bumper for flippy,
+            # Grabber - right trigger for full intake, x button for flippy,
             # left trigger to deposit cube.
             if controller.getTriggerAxis(CONTROLLER_RIGHT):
                 self.grabber.intake()

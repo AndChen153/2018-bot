@@ -35,7 +35,7 @@ class Elevator:
     solenoid = DoubleSolenoid
     reverse_limit = DigitalInput
 
-    kFreeSpeed = tunable(1)
+    kFreeSpeed = tunable(0.1)
     kZeroingSpeed = tunable(0.1)
     kP = tunable(0.3)
     kI = tunable(0.0)
@@ -165,18 +165,28 @@ class Elevator:
         elif self.pending_position is not None and self.is_encoder_connected():
             # Note: we don't clear the pending position so that we keep
             # on driving to the position in subsequent execute() cycles.
-            if not self.has_zeroed and \
-                    self.pending_position == ElevatorPosition.GROUND:
-                # Drive downwards until we zero it... and cross our fingers...
-                self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput,
-                               -self.kZeroingSpeed)
-            elif self.has_zeroed:  # Don't drive positionally if not zeroed
+
+            # If not zeroed, try out "best shot" at getting to desired places
+            if not self.has_zeroed:
+                if self.pending_position == ElevatorPosition.GROUND:
+                    # Drive downwards until we zero it
+                    self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput,
+                                   -self.kZeroingSpeed)
+                elif self.pending_position == ElevatorPosition.SWITCH:
+                    # Hopefully it's at the start of the match and we're still
+                    # near the top. Just hold position right where we are
+                    self.motor.set(WPI_TalonSRX.ControlMode.Position,
+                                   self.motor.getQuadraturePosition())
+
+            # Otherwise, if we're zeroed, just set position normally
+            elif self.has_zeroed:
                 if self.USE_MOTIONMAGIC:
                     self.motor.set(WPI_TalonSRX.ControlMode.MotionMagic,
                                    self.pending_position)
                 else:
                     self.motor.set(WPI_TalonSRX.ControlMode.Position,
                                    self.pending_position)
+
         else:
             if self.is_encoder_connected():
                 # If no command, hold position in place (basically, a more
