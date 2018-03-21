@@ -46,7 +46,7 @@ class PhysicsEngine(object):
 
             hal_data['CAN'][5]['quad_position'] = int(
                 self.r_distance * self.kEncoder)
-            hal_data['CAN'][4]['quad_velocity'] = self.drivetrain.r_speed * \
+            hal_data['CAN'][5]['quad_velocity'] = self.drivetrain.r_speed * \
                 self.kEncoder
 
         except KeyError:

@@ -15,7 +15,7 @@ class GrabberState(IntEnum):
 
 class Grabber:
 
-    intake_speed = tunable(0.8)
+    intake_speed = tunable(1.0)  # originally: 0.8
     deposit_speed = tunable(0.45)
     current_limit = tunable(0.0)
 

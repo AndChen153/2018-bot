@@ -1,18 +1,20 @@
 import magicbot
 import wpilib
 import ctre
-from networktables import NetworkTables
 from robotpy_ext.common_drivers import navx
 from components import bot, drivetrain, elevator, grabber, field, \
     targeting, ramp, macros
-from common import util, rumbler
+from common import rumbler
 from controllers import position_controller, angle_controller, \
     trajectory_controller, grabber_orienter_controller, \
     grabber_auto_controller, cube_hunter_controller, \
-    hold_position_controller, macro_controller, path_controller
+    hold_position_controller, macro_controller, path_controller, \
+    path_recorder_controller
 
 CONTROLLER_LEFT = wpilib.XboxController.Hand.kLeft
 CONTROLLER_RIGHT = wpilib.XboxController.Hand.kRight
+
+USE_PATH_RECORDER = False
 
 
 class SpartaBot(magicbot.MagicRobot):
@@ -40,13 +42,15 @@ class SpartaBot(magicbot.MagicRobot):
     cube_hunter_controller = cube_hunter_controller.CubeHunterController
     hold_position_controller = hold_position_controller.HoldPositionController
     path_controller = path_controller.PathController
+    path_recorder_controller = path_recorder_controller.PathRecorderController
 
     field = field.Field
 
     def createObjects(self):
         # Practice bot
         # On practice bot, DIO is shorted
-        self.is_practice_bot = wpilib.DigitalInput(30)
+        # self.is_practice_bot = wpilib.DigitalInput(30)
+        self.is_practice_bot = wpilib.DigitalInput(20)
 
         # Drivetrain
         self.drivetrain_left_motor_master = ctre.WPI_TalonSRX(4)
@@ -71,6 +75,7 @@ class SpartaBot(magicbot.MagicRobot):
 
         # Controllers
         self.drive_controller = wpilib.XboxController(0)
+        self.operator_controller = wpilib.XboxController(1)
 
         # Compressor
         self.compressor = wpilib.Compressor()
@@ -81,9 +86,10 @@ class SpartaBot(magicbot.MagicRobot):
         # Navx
         self.navx = navx.AHRS.create_spi()
 
-        # Macros
+        # Macros / path recorder
         self._is_recording_macro = False
         self._is_playing_macro = False
+        self._is_recording_path = False
 
         # Flippy toggle
         self._is_flippy = False
@@ -165,13 +171,12 @@ class SpartaBot(magicbot.MagicRobot):
                             CONTROLLER_LEFT)):
                 self.hold_position_controller.engage()
 
-            # Compressor's a bitch
-            # if controller.getBackButtonReleased() and not \
-            #         controller.getStartButton():
-            #     if self.compressor.enabled():
-            #         self.compressor.stop()
-            #     else:
-            #         self.compressor.start()
+            # Path recorder
+            if USE_PATH_RECORDER:
+                if self.operator_controller.getAButtonReleased():
+                    self._is_recording_path = not self._is_recording_path
+                if self._is_recording_path:
+                    self.path_recorder_controller.record()
 
     def disabledPeriodic(self):
         # Lock ramps
