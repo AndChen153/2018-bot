@@ -44,11 +44,23 @@ TRAJECTORIES = {
         pf.Waypoint(3.75, 0, 0),
         pf.Waypoint(1.75, -1.75, 0)
     ],
+
+    # THESE ARE NEW
     'center_right': [
         pf.Waypoint(0.89, 4.11, 0),
-        # pf.Waypoint(4, 2.50, 0),
-        pf.Waypoint(4, 2.75, 0)
+        pf.Waypoint(3.5, 2.9, 0)
     ],
+    'center_left': [
+        pf.Waypoint(0.89, 4.11, 0),
+        pf.Waypoint(3.5, 5.3, 0)
+    ],
+
+    # OG FALLBACK, NO CENTER LEFT SPECIFIC
+    # 'center_right': [
+    #     pf.Waypoint(0.89, 4.11, 0),
+    #     pf.Waypoint(4, 2.75, 0)
+    # ],
+
     'center_right_reverse': [
         pf.Waypoint(3.5, 2.72, 0),
         pf.Waypoint(1.75, 3.47, 0)
@@ -117,7 +129,7 @@ TRAJECTORY_OPTIONS = {
 # Mirror trajectories
 for key, points in list(TRAJECTORIES.items()):
     new_key = key.replace('right', 'left')
-    if new_key != key:
+    if new_key != key and new_key not in TRAJECTORIES:
         TRAJECTORIES[new_key] = [
             points[0],
             pf.Waypoint(points[1].x, points[0].y +

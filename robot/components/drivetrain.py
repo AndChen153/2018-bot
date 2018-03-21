@@ -11,7 +11,7 @@ from common import util
 
 DifferentialDriveConfig = namedtuple('DifferentialDriveConfig',
                                      ['y', 'rotation', 'squared',
-                                      'quick_turn'])
+                                      'quick_turn', 'use_curvature'])
 
 HIGH_GEAR = False
 LOW_GEAR = True
@@ -21,6 +21,8 @@ DISTANCE_PER_REV = (2 * math.pi * 3) / (3 / 1) / (54 / 30)  # inch
 DISTANCE_PER_REV_METERS = (2 * math.pi * 0.0762) / (3 / 1) / (54 / 30)  # m
 
 DEADBAND = 0.05
+
+USE_CURVATURE_DRIVE = True
 
 
 class Drivetrain:
@@ -95,10 +97,11 @@ class Drivetrain:
         self.differential_drive(*args)
 
     def differential_drive(self, y, rotation=0, squared=True, force=False,
-                           quick_turn=False):
+                           quick_turn=False, use_curvature=False):
         if not self.force_differential_drive:
             self.pending_differential_drive = DifferentialDriveConfig(
-                y=y, rotation=rotation, squared=squared, quick_turn=quick_turn)
+                y=y, rotation=rotation, squared=squared, quick_turn=quick_turn,
+                use_curvature=use_curvature)
             self.force_differential_drive = force
 
     def turn(self, rotation=0, force=False):
@@ -111,6 +114,26 @@ class Drivetrain:
         '''
         Heading must be reset first. (drivetrain.reset_angle_correction())
         '''
+
+        # Scale angle to reduce max turn
+        rotation = util.scale(rotation, -1, 1, -0.7, 0.7)
+
+        # Scale y-speed in high gear
+        if self.pending_gear == HIGH_GEAR:
+            y = util.scale(y, -1, 1, -0.75, 0.75)
+
+        use_curvature = False
+        quick_turn = False
+
+        # Small rotation at lower speeds - and also do a quick_turn instead of
+        # the normal curvature-based mode.
+        if abs(y) <= self.little_rotation_cutoff:
+            rotation = util.abs_clamp(rotation, 0, 0.6)
+            quick_turn = True
+
+        # Curvature drive for high gear and high speedz
+        if self.pending_gear == HIGH_GEAR and abs(y) >= 0.5:
+            use_curvature = True
 
         # Angle correction
         if abs(rotation) <= self.angle_correction_cutoff:
@@ -126,11 +149,8 @@ class Drivetrain:
         else:
             self.og_yaw = None
 
-        # Small rotation at lower speeds
-        if abs(y) <= self.little_rotation_cutoff:
-            rotation = util.abs_clamp(rotation, 0, 0.6)
-
-        self.differential_drive(y, rotation)
+        self.differential_drive(y, rotation, quick_turn=quick_turn,
+                                use_curvature=use_curvature)
 
     def shift_low_gear(self):
         self.pending_gear = LOW_GEAR
@@ -201,18 +221,19 @@ class Drivetrain:
 
         # Drive
         if self.pending_differential_drive:
-            if self.pending_gear == LOW_GEAR or \
-                    abs(self.pending_differential_drive.y) <= \
-                    self.arcade_cutoff:
-                self.robot_drive.arcadeDrive(
-                    self.pending_differential_drive.y,
-                    -self.pending_differential_drive.rotation,
-                    squaredInputs=self.pending_differential_drive.squared)
-            elif self.pending_gear == HIGH_GEAR:
+            if self.pending_differential_drive.use_curvature and \
+                abs(self.pending_differential_drive.y) > \
+                    self.arcade_cutoff and \
+                    USE_CURVATURE_DRIVE:
                 self.robot_drive.curvatureDrive(
                     self.pending_differential_drive.y,
                     -self.pending_differential_drive.rotation,
                     isQuickTurn=self.pending_differential_drive.quick_turn)
+            else:
+                self.robot_drive.arcadeDrive(
+                    self.pending_differential_drive.y,
+                    -self.pending_differential_drive.rotation,
+                    squaredInputs=self.pending_differential_drive.squared)
 
             self.pending_differential_drive = None
             self.force_differential_drive = False

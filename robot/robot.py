@@ -61,14 +61,8 @@ class SpartaBot(magicbot.MagicRobot):
         self.elevator_reverse_limit = wpilib.DigitalInput(0)
 
         # Grabber
-        if self.is_practice_bot.get():
-            print('is practice bot')
-            self.grabber_left_motor = ctre.WPI_TalonSRX(1)
-            self.grabber_right_motor = ctre.WPI_TalonSRX(2)
-        else:
-            print('is competition bot')
-            self.grabber_left_motor = ctre.WPI_TalonSRX(1)
-            self.grabber_right_motor = ctre.WPI_TalonSRX(2)
+        self.grabber_left_motor = ctre.WPI_TalonSRX(1)
+        self.grabber_right_motor = ctre.WPI_TalonSRX(2)
 
         # Ramp
         self.ramp_solenoid = wpilib.DoubleSolenoid(3, 4)
@@ -77,7 +71,6 @@ class SpartaBot(magicbot.MagicRobot):
 
         # Controllers
         self.drive_controller = wpilib.XboxController(0)
-        # self.operator_controller = wpilib.XboxController(1)
 
         # Compressor
         self.compressor = wpilib.Compressor()
@@ -91,6 +84,8 @@ class SpartaBot(magicbot.MagicRobot):
         # Macros
         self._is_recording_macro = False
         self._is_playing_macro = False
+
+        # Flippy toggle
         self._is_flippy = False
 
     def teleopInit(self):
@@ -99,19 +94,15 @@ class SpartaBot(magicbot.MagicRobot):
         self.position_controller.reset_position_and_heading()
         self.trajectory_controller.reset()
         self.grabber_auto_controller.enable()
+        self.drivetrain.shift_high_gear()
 
     def teleopPeriodic(self):
         # Drive with controller
         angle = self.drive_controller.getX(CONTROLLER_RIGHT)
-        if not self.drive_controller.getStickButtonPressed(CONTROLLER_RIGHT):
-            # Unless the right stick is pressed down, scale down turning inputs
-            # to keep the robot from flying around the field / overshooting.
-            angle = util.scale(angle, -1, 1, -0.7, 0.7)
         self.drivetrain.angle_corrected_differential_drive(
             self.drive_controller.getY(CONTROLLER_LEFT), angle)
 
-        # Shifter - toggle into low gear when bumper pressed
-        # for precise alignment. Otherwise stay high and zippy.
+        # Shifter - toggle on bumper press
         if self.drive_controller.getBumperReleased(CONTROLLER_LEFT):
             self.drivetrain.shift_toggle()
 
