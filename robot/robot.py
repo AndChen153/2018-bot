@@ -1,6 +1,7 @@
 import magicbot
 import wpilib
 import ctre
+import hal
 from robotpy_ext.common_drivers import navx
 from components import bot, drivetrain, elevator, grabber, field, \
     targeting, ramp, macros
@@ -50,7 +51,10 @@ class SpartaBot(magicbot.MagicRobot):
         # Practice bot
         # On practice bot, DIO is shorted
         # self.is_practice_bot = wpilib.DigitalInput(30)
-        self.is_practice_bot = wpilib.DigitalInput(20)
+        if hal.HALIsSimulation():
+            self.is_practice_bot = wpilib.DigitalInput(20)
+        else:
+            self.is_practice_bot = wpilib.DigitalInput(30)
 
         # Drivetrain
         self.drivetrain_left_motor_master = ctre.WPI_TalonSRX(4)
@@ -153,6 +157,7 @@ class SpartaBot(magicbot.MagicRobot):
                     self.hold_start_time = wpilib.Timer.getFPGATimestamp()
                 elif wpilib.Timer.getFPGATimestamp() - self.hold_start_time \
                         > ramp.SAFETY_RELEASE_WAIT:
+                    self.drivetrain.shift_low_gear()
                     self.ramp.release()
                     rumbler.rumble(controller, 0)
                     self.hold_start_time = None

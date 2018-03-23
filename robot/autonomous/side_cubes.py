@@ -28,7 +28,7 @@ class SideAutonomous(StatefulAutonomous):
         self.end_after_trajectory = False
 
         self.elevator.release_lock()
-        self.elevator.raise_to_switch()
+        self.elevator.raise_to_carry()
         self.trajectory_controller.reset()
         self.switch_side = self.field.get_switch_side()
         if self.switch_side is not None:
@@ -58,7 +58,6 @@ class SideAutonomous(StatefulAutonomous):
                 else:
                     self.trajectory_controller.push(path='side_forward')
                 self.trajectory_controller.push(rotate=90 * self.sign)
-                self.trajectory_controller.push(position=20, timeout=0.5)
             else:
                 if self.SAME_SIDE_ONLY:
                     self.elevator.lower_to_ground()
@@ -82,7 +81,15 @@ class SideAutonomous(StatefulAutonomous):
             if self.end_after_trajectory:
                 self.done()
             else:
-                self.next_state('deposit')
+                self.elevator.raise_to_switch()
+                if self.elevator.is_at_position(ElevatorPosition.SWITCH):
+                    self.trajectory_controller.push(position=20, timeout=0.5)
+                    self.next_state('execute_trajectory_2')
+
+    @state
+    def execute_trajectory_2(self):
+        if self.trajectory_controller.is_finished():
+            self.next_state('deposit')
 
     @timed_state(duration=0.75, next_state='back_up_to_hunt')
     def deposit(self):

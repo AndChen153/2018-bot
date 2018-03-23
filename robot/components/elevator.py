@@ -53,6 +53,7 @@ class Elevator:
         self.state = ElevatorState.LOCKED
         self.pending_position = None
         self.pending_drive = None
+        self._temp_hold = None
 
         self.has_zeroed = False
         self.needs_brake = False
@@ -127,25 +128,28 @@ class Elevator:
         # For debugging
         # print('elevator', 'drive', self.pending_drive,
         #       'lim', self.reverse_limit.get(),
-        #       'pos', self.pending_position,
+        #       'pending_pos', self.pending_position,
         #       'setpoint', self.setpoint,
         #       'val', self.value,
         #       'err', self.error,
-        #       'pos', self.motor.getQuadraturePosition(),
-        #       'velo', self.motor.getQuadratureVelocity())
+        #       'curr_pos', self.motor.getQuadraturePosition(),
+        #       'curr_velo', self.motor.getQuadratureVelocity())
 
         # Brake - apply the brake either when we reach peak of movement
         # (for upwards motion), and thus ds/dt = v = 0, or else immediately
         # if we're traveling downwards (since no e.z. way to sense gravity vs
         # intertial movement).
         if self.needs_brake:
-            velocity = self.motor.getQuadratureVelocity()
-            if velocity == 0 or \
-                    self.braking_direction == -1 or \
-                    velocity / abs(velocity) != self.braking_direction:
-                self.pending_position = self.motor.getQuadraturePosition()
+            if self.pending_drive:
                 self.needs_brake = False
-                self.braking_direction = None
+            else:
+                velocity = self.motor.getQuadratureVelocity()
+                if velocity == 0 or \
+                        self.braking_direction == -1 or \
+                        velocity / abs(velocity) != self.braking_direction:
+                    self.pending_position = self.motor.getQuadraturePosition()
+                    self.needs_brake = False
+                    self.braking_direction = None
 
         # Zero the encoder when hits bottom of elevator - limit switch NC
         # Also ensure we don't drive past the bottom limit.
@@ -161,6 +165,7 @@ class Elevator:
                            self.pending_drive)
             self.pending_drive = None
             self.pending_position = None  # Clear old pending position
+            self._temp_hold = None
 
         elif self.pending_position is not None and self.is_encoder_connected():
             # Note: we don't clear the pending position so that we keep
@@ -168,18 +173,23 @@ class Elevator:
 
             # If not zeroed, try out "best shot" at getting to desired places
             if not self.has_zeroed:
-                if self.pending_position == ElevatorPosition.GROUND:
+                if self.pending_position == ElevatorPosition.GROUND or \
+                        self.pending_position == ElevatorPosition.CARRYING:
                     # Drive downwards until we zero it
+                    self._temp_hold = None
                     self.motor.set(WPI_TalonSRX.ControlMode.PercentOutput,
                                    -self.kZeroingSpeed)
-                elif self.pending_position == ElevatorPosition.SWITCH:
+                else:
                     # Hopefully it's at the start of the match and we're still
                     # near the top. Just hold position right where we are
-                    self.motor.set(WPI_TalonSRX.ControlMode.Position,
-                                   self.motor.getQuadraturePosition())
+                    if not self._temp_hold:
+                        self._temp_hold = self.motor.getQuadraturePosition()
+                    self.motor.set(WPI_TalonSRX.ControlMode.MotionMagic,
+                                   self._temp_hold)
 
             # Otherwise, if we're zeroed, just set position normally
             elif self.has_zeroed:
+                self._temp_hold = None
                 if self.USE_MOTIONMAGIC:
                     self.motor.set(WPI_TalonSRX.ControlMode.MotionMagic,
                                    self.pending_position)

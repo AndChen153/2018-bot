@@ -52,7 +52,7 @@ TRAJECTORIES = {
     ],
     'center_left': [
         pf.Waypoint(0.89, 4.11, 0),
-        pf.Waypoint(3.5, 5.3, 0)
+        pf.Waypoint(3.5, 5.25, 0)
     ],
 
     # OG FALLBACK, NO CENTER LEFT SPECIFIC
@@ -130,6 +130,7 @@ TRAJECTORY_OPTIONS = {
 for key, points in list(TRAJECTORIES.items()):
     new_key = key.replace('right', 'left')
     if new_key != key and new_key not in TRAJECTORIES:
+        print('Autogenerating %s' % new_key)
         TRAJECTORIES[new_key] = [
             points[0],
             pf.Waypoint(points[1].x, points[0].y +

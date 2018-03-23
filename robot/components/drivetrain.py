@@ -17,8 +17,13 @@ HIGH_GEAR = False
 LOW_GEAR = True
 
 UNITS_PER_REV = 4096
-DISTANCE_PER_REV = (2 * math.pi * 3) / (3 / 1) / (54 / 30)  # inch
-DISTANCE_PER_REV_METERS = (2 * math.pi * 0.0762) / (3 / 1) / (54 / 30)  # m
+
+# RADIUS_INCHES = 3
+RADIUS_INCHES = 3 + (1 / 8)
+RADIUS_METERS = RADIUS_INCHES * 0.0254
+
+DISTANCE_PER_REV = (2 * math.pi * RADIUS_INCHES) / (3 / 1) / (54 / 30)
+DISTANCE_PER_REV_METERS = (2 * math.pi * RADIUS_METERS) / (3 / 1) / (54 / 30)
 
 DEADBAND = 0.05
 
@@ -116,7 +121,7 @@ class Drivetrain:
         '''
 
         # Scale angle to reduce max turn
-        rotation = util.scale(rotation, -1, 1, -0.7, 0.7)
+        rotation = util.scale(rotation, -1, 1, -0.65, 0.65)
 
         # Scale y-speed in high gear
         if self.pending_gear == HIGH_GEAR:
@@ -128,12 +133,13 @@ class Drivetrain:
         # Small rotation at lower speeds - and also do a quick_turn instead of
         # the normal curvature-based mode.
         if abs(y) <= self.little_rotation_cutoff:
-            rotation = util.abs_clamp(rotation, 0, 0.6)
+            rotation = util.abs_clamp(rotation, 0, 0.7)
             quick_turn = True
 
+        # NEVER USE CURVATURE
         # Curvature drive for high gear and high speedz
-        if self.pending_gear == HIGH_GEAR and abs(y) >= 0.5:
-            use_curvature = True
+        # if self.pending_gear == HIGH_GEAR and abs(y) >= 0.5:
+        #     use_curvature = True
 
         # Angle correction
         if abs(rotation) <= self.angle_correction_cutoff:
@@ -201,7 +207,7 @@ class Drivetrain:
             self.pending_manual_drive = None
 
     def execute(self):
-        # print('exec drivetrain', self.pending_manual_drive)
+        # print('exec drivetrain', self.pending_differential_drive)
         # print('dist_traveled_meters', self.get_left_encoder_meters(),
         #       self.get_right_encoder_meters())
 
