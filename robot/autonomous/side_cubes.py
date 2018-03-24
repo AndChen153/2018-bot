@@ -81,10 +81,16 @@ class SideAutonomous(StatefulAutonomous):
             if self.end_after_trajectory:
                 self.done()
             else:
-                self.elevator.raise_to_switch()
-                if self.elevator.is_at_position(ElevatorPosition.SWITCH):
-                    self.trajectory_controller.push(position=20, timeout=0.5)
-                    self.next_state('execute_trajectory_2')
+                self.next_state('raise_elevator_for_cube')
+
+    @timed_state(duration=0.5, next_state='prep_to_deliver')
+    def raise_elevator_for_cube(self):
+        self.elevator.raise_to_switch()
+
+    @state
+    def prep_to_deliver(self):
+        self.trajectory_controller.push(position=20, timeout=0.5)
+        self.next_state('execute_trajectory_2')
 
     @state
     def execute_trajectory_2(self):
