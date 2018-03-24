@@ -48,7 +48,7 @@ TRAJECTORIES = {
     # THESE ARE NEW
     'center_right': [
         pf.Waypoint(0.89, 4.11, 0),
-        pf.Waypoint(3.5, 2.9, 0)
+        pf.Waypoint(3.5, 3.25, 0)
     ],
     'center_left': [
         pf.Waypoint(0.89, 4.11, 0),
