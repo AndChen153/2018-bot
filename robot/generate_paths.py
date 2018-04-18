@@ -48,11 +48,11 @@ TRAJECTORIES = {
     # THESE ARE NEW
     'center_right': [
         pf.Waypoint(0.89, 4.11, 0),
-        pf.Waypoint(3.5, 3.25, 0)
+        pf.Waypoint(3.5, 3.25, 0)  # + 0.86
     ],
     'center_left': [
         pf.Waypoint(0.89, 4.11, 0),
-        pf.Waypoint(3.5, 5.25, 0)
+        pf.Waypoint(3.5, 5.25, 0)  # + 1.14
     ],
 
     # OG FALLBACK, NO CENTER LEFT SPECIFIC

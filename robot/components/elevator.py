@@ -21,8 +21,9 @@ class ElevatorState(IntEnum):
 
 class ElevatorPosition(IntEnum):
     GROUND = 0
-    # CARRYING = 2000
-    CARRYING = 3000
+    # CARRYING = 2000  # rocket
+    # CARRYING = 3000  # bayou
+    CARRYING = 4000  # cmp
     SWITCH = 23000
 
 

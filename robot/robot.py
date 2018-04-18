@@ -48,6 +48,10 @@ class SpartaBot(magicbot.MagicRobot):
     field = field.Field
 
     def createObjects(self):
+        # TEMP - PRACTICE BOT ONLY
+        # Launch cameraserver
+        # wpilib.CameraServer.launch()
+
         # Practice bot
         # On practice bot, DIO is shorted
         # self.is_practice_bot = wpilib.DigitalInput(30)
