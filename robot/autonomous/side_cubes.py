@@ -89,7 +89,7 @@ class SideAutonomous(StatefulAutonomous):
 
     @state
     def prep_to_deliver(self):
-        self.trajectory_controller.push(position=20, timeout=0.5)
+        self.trajectory_controller.push(position=20, timeout=1)
         self.next_state('execute_trajectory_2')
 
     @state

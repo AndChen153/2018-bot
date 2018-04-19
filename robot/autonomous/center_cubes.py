@@ -42,6 +42,7 @@ class CenterAutonomous(StatefulAutonomous):
 
     @timed_state(duration=0.75, next_state='drive_to_second_cube')
     def deposit(self):
+        print('depositing...')
         self.grabber.deposit()
 
     @state
@@ -53,9 +54,14 @@ class CenterAutonomous(StatefulAutonomous):
         self.trajectory_controller.push(path='center_%s_reverse' %
                                              self.path_key,
                                         reverse=True)
-        self.trajectory_controller.push(rotate=45 * self.sign)
-        self.trajectory_controller.push(path='center_approach_second_cube')
-        self.next_state('backup')
+        self.next_state('do_reverse')
+
+    @state
+    def do_reverse(self):
+        if self.trajectory_controller.is_finished():
+            self.trajectory_controller.push(rotate=45 * self.sign)
+            self.trajectory_controller.push(path='center_approach_second_cube')
+            self.next_state('backup')
 
     @state
     def backup(self):

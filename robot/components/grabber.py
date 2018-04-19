@@ -7,7 +7,7 @@ from components.elevator import Elevator
 
 CUBE_CURRENT_CUTOFF = 10
 
-SHOULD_HOLD_POSITION = True
+SHOULD_HOLD_POSITION = False
 
 
 class GrabberState(IntEnum):

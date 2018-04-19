@@ -38,7 +38,7 @@ MAX_JERK = 60.0
 TRAJECTORIES = {
     'side_forward': [
         pf.Waypoint(0, 0, 0),
-        pf.Waypoint(3.75, 0, 0)
+        pf.Waypoint(4, 0, 0)
     ],
     'side_return_right': [
         pf.Waypoint(3.75, 0, 0),
@@ -61,20 +61,30 @@ TRAJECTORIES = {
     #     pf.Waypoint(4, 2.75, 0)
     # ],
 
+    # 'center_right_reverse': [
+    #     pf.Waypoint(3.5, 2.72, 0),
+    #     pf.Waypoint(2.5, 3.47, 0)
+    # ],
+    # 'center_right_return': [
+    #     pf.Waypoint(2.5, 3.47, 0),
+    #     pf.Waypoint(3.6, 3.2, 0)
+    # ],
+
     'center_right_reverse': [
-        pf.Waypoint(3.5, 2.72, 0),
-        pf.Waypoint(1.75, 3.47, 0)
+        pf.Waypoint(1.35, 0, 0),
+        pf.Waypoint(0, 0, 0)
     ],
     'center_right_return': [
-        pf.Waypoint(1.75, 3.47, 0),
-        pf.Waypoint(3.6, 3.2, 0)
+        pf.Waypoint(0, 0, 0),
+        pf.Waypoint(1, 0, 0)
     ],
+
     'center_approach_second_cube': [
         pf.Waypoint(0, 0, 0),
-        pf.Waypoint(1.75, 0, 0)
+        pf.Waypoint(1.3, 0, 0)
     ],
     'center_return_second_cube': [
-        pf.Waypoint(1.25, 0, 0),
+        pf.Waypoint(1, 0, 0),
         pf.Waypoint(0, 0, 0)
     ],
     'side_right_around_back_to_opposite_side': [
@@ -118,11 +128,11 @@ TRAJECTORIES = {
 }
 
 TRAJECTORY_OPTIONS = {
-    # 'center_right': {
-    #     'max_accel': 4,
-    #     'max_jerk': 30,
-    #     'max_velocity': 4
-    # }
+    'side_forward': {
+        'max_accel': 8,
+        'max_jerk': 60,
+        'max_velocity': 7
+    }
 }
 
 
