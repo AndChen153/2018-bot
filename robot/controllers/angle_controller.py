@@ -31,7 +31,8 @@ class AngleController(BasePIDComponent):
         if hal.HALIsSimulation():
             self.set_abs_output_range(0.08, 0.25)
         else:
-            self.set_abs_output_range(0.13, 0.25)
+            # self.set_abs_output_range(0.13, 0.25)
+            self.set_abs_output_range(0.13, 0.4)
 
         if hasattr(self, 'pid'):
             self.pid.setInputRange(-180.0, 180.0)

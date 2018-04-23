@@ -51,16 +51,14 @@ class CenterAutonomous(StatefulAutonomous):
             self.done()
             return
 
-        self.trajectory_controller.push(path='center_%s_reverse' %
-                                             self.path_key,
-                                        reverse=True)
+        self.trajectory_controller.push(position=-45)
         self.next_state('do_reverse')
 
     @state
     def do_reverse(self):
         if self.trajectory_controller.is_finished():
             self.trajectory_controller.push(rotate=45 * self.sign)
-            self.trajectory_controller.push(path='center_approach_second_cube')
+            self.trajectory_controller.push(position=35)
             self.next_state('backup')
 
     @state
@@ -70,11 +68,9 @@ class CenterAutonomous(StatefulAutonomous):
             self.grabber.intake()
 
         if self.trajectory_controller.is_finished():
-            self.trajectory_controller.push(path='center_return_second_cube',
-                                            reverse=True)
+            self.trajectory_controller.push(position=-35)
             self.trajectory_controller.push(rotate=-45 * self.sign)
-            self.trajectory_controller.push(path='center_%s_return' %
-                                            self.path_key)
+            self.trajectory_controller.push(position=49)
             self.next_state('return_from_second_cube')
 
     @state

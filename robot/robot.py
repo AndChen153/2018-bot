@@ -62,7 +62,7 @@ class SpartaBot(magicbot.MagicRobot):
 
         # Drivetrain
         self.drivetrain_left_motor_master = ctre.WPI_TalonSRX(4)
-        self.drivetrain_left_motor_slave = ctre.WPI_TalonSRX(3)
+        self.drivetrain_left_motor_slave = ctre.WPI_TalonSRX(7)  # was 3
         self.drivetrain_right_motor_master = ctre.WPI_TalonSRX(5)
         self.drivetrain_right_motor_slave = ctre.WPI_TalonSRX(6)
         self.drivetrain_shifter_solenoid = wpilib.Solenoid(0)
@@ -78,7 +78,7 @@ class SpartaBot(magicbot.MagicRobot):
 
         # Ramp
         self.ramp_solenoid = wpilib.DoubleSolenoid(3, 4)
-        self.ramp_motor = ctre.WPI_TalonSRX(7)
+        self.ramp_motor = ctre.WPI_TalonSRX(3)  # was 7
         self.hold_start_time = None
 
         # Controllers
