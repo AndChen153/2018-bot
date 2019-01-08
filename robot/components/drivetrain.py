@@ -33,14 +33,14 @@ USE_CURVATURE_DRIVE = True
 class Drivetrain:
 
     navx = navx.AHRS
-
+    #master/slave????
     left_motor_master = WPI_TalonSRX
     left_motor_slave = WPI_TalonSRX
     right_motor_master = WPI_TalonSRX
     right_motor_slave = WPI_TalonSRX
 
     shifter_solenoid = Solenoid
-
+    #networktables??? and tunable
     arcade_cutoff = tunable(0.1)
     angle_correction_cutoff = tunable(0.05)
     angle_correction_factor_low_gear = tunable(0.1)
